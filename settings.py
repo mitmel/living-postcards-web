@@ -44,7 +44,7 @@ USE_I18N = True
 USE_L10N = True
 
 # If you set this to False, Django will not use timezone-aware datetimes.
-USE_TZ = True
+USE_TZ = False
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
@@ -106,6 +106,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'locast.middleware.LocastMiddleware',
 )
 
 ROOT_URLCONF = 'postcards.urls'
@@ -120,6 +121,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.gis',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
@@ -133,6 +135,8 @@ APP_LABEL = 'postcards'
 USER_MODEL = 'postcards.PostcardUser'
 
 AUTH_PROFILE_MODULE = 'postcards.PostcardUserProfile'
+
+DEFAULT_PRIVACY = 2
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

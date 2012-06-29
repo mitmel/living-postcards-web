@@ -1,5 +1,6 @@
 from django.contrib.gis.db.models.manager import GeoManager
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -11,30 +12,53 @@ class Postcard(ModelBase,
     interfaces.Titled,
     interfaces.Locatable):
 
-    #@models.permalink
-    #def get_api_uri(self):
-    #    return ('cast_api_single', [str(self.id)])
-
-    #def get_absolute_url(self):
-    # return reverse('frontpage') + '#!cast/' + str(self.id) + '/'
-
     class Meta:
         verbose_name = _('postcard')
+
+    @models.permalink
+    def get_api_uri(self):
+        return ('postcard_single_api', [str(self.id)])
+
+    #def get_absolute_url(self):
+    #    return reverse('frontpage') + '#!cast/' + str(self.id) + '/'
 
     def __unicode__(self):
         return u'%s (id: %s)' % (self.title, str(self.id))
 
     objects = GeoManager()
 
-class Photo(modelbases.ImageContent,
-        interfaces.Authorable):
+    def api_serialize(self, request):
+        d = {}
+        d['photos'] = reverse('postcard_photo_api', kwargs={'postcard_id':self.id})
+        return d
+
+# Generic holder for media content.
+class PostcardContent(modelbases.LocastContent): pass
+
+class Photo(PostcardContent,
+        interfaces.Authorable,
+        interfaces.Locatable,
+        interfaces.Titled,
+        modelbases.ImageContent):
 
     class Meta:
         verbose_name = _('photo')
 
+    @models.permalink
+    def get_api_uri(self):
+        return ('postcard_photo_single_api', [str(self.postcard.id), str(self.id)])
+
     objects = models.Manager()
 
-    photo = models.ForeignKey(Postcard)
+    postcard = models.ForeignKey(Postcard)
+
+    def api_serialize(self, request):
+        d = {}
+        if self.file:
+            d['primary'] = modelbases.LocastContent.serialize_resource(self.file.url)
+
+        return d
+
 
 class PostcardUserManager(managers.LocastUserManager): pass
 
@@ -64,6 +88,10 @@ class PostcardUser(modelbases.LocastUser):
             d['profile'] = profile.api_serialize(request)
 
         return d
+
+    def generate_display_name(self):
+        self.display_name = self.username
+
 
 class PostcardUserProfile(ModelBase):
     user = models.OneToOneField(PostcardUser)

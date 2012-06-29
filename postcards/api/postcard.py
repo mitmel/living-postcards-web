@@ -1,8 +1,12 @@
-from postcards import models
+from django.views.decorators.csrf import csrf_exempt
 
 from locast.api import *
 from locast.api import rest, qstranslate, exceptions
+from locast.auth.decorators import optional_http_auth, require_http_auth
 
+from postcards import forms, models
+
+@csrf_exempt
 class PostcardAPI(rest.ResourceView):
 
     ruleset = {
@@ -27,6 +31,7 @@ class PostcardAPI(rest.ResourceView):
         'favorited_by'  :    { 'type': 'int' },
     }
 
+    @optional_http_auth
     def get(request, postcard_id=None, coll_id=None, format='.json'):
 
         # single postcard
@@ -56,4 +61,128 @@ class PostcardAPI(rest.ResourceView):
                 postcard_arr.append(api_serialize(p, request))
 
             return APIResponseOK(content=postcard_arr, total=total, pg=pg)
+        
+
+    @require_http_auth
+    def post(request):
+        postcard = postcard_from_post(request)
+        postcard.save()
+        # models.UserActivity.objects.create_activity(request.user, cast, 'created')
+
+        return APIResponseCreated(content=api_serialize(postcard, request), location=postcard.get_api_uri())
+
+
+    @optional_http_auth
+    def get_photo(request, postcard_id, photo_id = None):
+        if photo_id:
+            photo = get_object(models.Photo, photo_id)
+            check_postcard_photo(postcard_id, photo_id)
+
+            return APIResponseOK(content=api_serialize(photo))
+
+        else:
+            postcard = get_object(models.Postcard, postcard_id)
+
+            if not postcard.allowed_access(request.user):
+                raise exceptions.APIForbidden
+
+            photo_dicts = []
+            for m in postcard.photo_set.all():
+                photo_dicts.append(api_serialize(m, request))
+
+        return APIResponseOK(content=photo_dicts)
+
+
+    @require_http_auth
+    def post_photo(request, postcard_id, photo_id = None):
+
+        if photo_id:
+            photo = get_object(models.Photo, id = photo_id)
+            check_postcard_photo(postcard_id, photo_id)
+
+            content_type = get_param(request.META, 'CONTENT_TYPE')
+            mime_type = content_type.split(';')[0]
+
+            if not mime_type:
+                raise exceptions.APIBadRequest('Invalid file type!')
+
+            photo.create_file_from_data(request.raw_post_data, mime_type)
+            return APIResponseOK(content=api_serialize(photo))
+
+        else:
+            photo = photo_from_post(request, postcard_id)
+            photo.save()
+
+            return APIResponseCreated(content=api_serialize(photo, request), location=photo.get_api_uri())
+
+
+def check_postcard_photo(postcard_id, photo_id):
+    postcard = get_object(models.Postcard, id=postcard_id)
+    try:
+        postcard.photo_set.get(id=photo_id)
+    except models.Photo.DoesNotExist:
+        raise exceptions.APIBadRequest('Photo is not part of this postcard')
+    return postcard
+
+
+def postcard_from_post(request, postcard = None):
+    data = {}
+
+    if postcard:
+        data = api_serialize(postcard)
+
+    data.update(get_json(request.raw_post_data))
+
+    location = None
+    if 'location' in data:
+        location = data['location']
+
+    if not postcard:
+        data['author'] = request.user.id
+    else:
+        data['author'] = postcard.author.id
+
+    # Modified and created cannot be set
+    if 'modified' in data: del data['modified']
+    if 'created' in data: del data['created']
+
+    if 'privacy' in data: 
+        data['privacy'] = models.Postcard.get_privacy_value(data['privacy'])
+
+    postcard = form_validate(forms.PostcardAPIForm, data, instance = postcard)
+
+    if location:
+        postcard.set_location(location[0], location[1])
+    
+    return postcard
+
+
+def photo_from_post(request, postcard_id, photo = None):
+    data = {}
+    if photo:
+        data = api_serialize(photo)
+
+    data.update(get_json(request.raw_post_data))
+
+    data['postcard'] = postcard_id
+
+    location = None
+    if 'location' in data:
+        location = data['location']
+
+    if not photo:
+        data['author'] = request.user.id
+    else:
+        data['author'] = photo.author.id
+
+    # Modified and created cannot be set
+    if 'modified' in data: del data['modified']
+    if 'created' in data: del data['created']
+
+    photo = form_validate(forms.PhotoAPIForm, data, instance = photo)
+
+    if location:
+        photo.set_location(location[0], location[1])
+    
+    return photo
 
