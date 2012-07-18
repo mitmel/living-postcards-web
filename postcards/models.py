@@ -1,5 +1,8 @@
+import subprocess
+
 from django.contrib.gis.db.models.manager import GeoManager
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -27,13 +30,36 @@ class Postcard(ModelBase,
 
     objects = GeoManager()
 
+    gif_preview = models.FileField(
+            upload_to='derivatives/%Y/%m/%d/', 
+            blank=True,
+            help_text=_('Created automatically.'))
+
     def api_serialize(self, request):
         d = {}
         d['photos'] = reverse('postcard_photo_api', kwargs={'postcard_id':self.id})
         return d
 
+    def process(self):
+        if self.postcardcontent_set.count():
+            self.create_animated_gif()
+
+    def create_animated_gif(self):
+        filename = 'animated_%s.gif' % self.id
+        self.gif_preview.save(filename, ContentFile(''), False)
+        images_to_gif_args = ['lcvideo_images_to_gif', self.gif_preview.path]
+        for i in self.postcardcontent_set.all():
+            if i.content.file:
+                images_to_gif_args.append(i.content.file.path)
+
+        subprocess.call(images_to_gif_args)
+
 # Generic holder for media content.
-class PostcardContent(modelbases.LocastContent): pass
+class PostcardContent(modelbases.LocastContent):
+
+    objects = models.Manager()
+
+    postcard = models.ForeignKey(Postcard)
 
 class Photo(PostcardContent,
         interfaces.Authorable,
@@ -48,9 +74,8 @@ class Photo(PostcardContent,
     def get_api_uri(self):
         return ('postcard_photo_single_api', [str(self.postcard.id), str(self.id)])
 
-    objects = models.Manager()
-
-    postcard = models.ForeignKey(Postcard)
+    def __unicode__(self):
+        return u'%s (id: %s, postcard: %s)' % (self.title, str(self.id), self.postcard.title)
 
     def api_serialize(self, request):
         d = {}
@@ -58,7 +83,6 @@ class Photo(PostcardContent,
             d['primary'] = modelbases.LocastContent.serialize_resource(self.file.url)
 
         return d
-
 
 class PostcardUserManager(managers.LocastUserManager): pass
 
