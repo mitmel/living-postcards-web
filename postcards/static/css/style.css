@@ -93,3 +93,5 @@ td { vertical-align: top; }
   p, h2, h3 { orphans: 3; widows: 3; }
   h2, h3 { page-break-after: avoid; }
 }
+
+#gallery img { width: 320px; margin: 5px; }

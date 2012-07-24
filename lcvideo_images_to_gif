@@ -9,7 +9,7 @@ fi
 
 i=0
 for var in "$@" ; do
-    if [ $i -gt 1 ]; then
+    if [ $i -gt 0 ]; then
         cp ${var} ${dir}/image${i}.jpg
     fi
     let i=i+1

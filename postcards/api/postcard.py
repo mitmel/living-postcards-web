@@ -78,7 +78,7 @@ class PostcardAPI(rest.ResourceView):
             photo = get_object(models.Photo, photo_id)
             check_postcard_photo(postcard_id, photo_id)
 
-            return APIResponseOK(content=api_serialize(photo))
+            return APIResponseOK(content=api_serialize(photo.contentmodel0))
 
         else:
             postcard = get_object(models.Postcard, postcard_id)
@@ -87,8 +87,8 @@ class PostcardAPI(rest.ResourceView):
                 raise exceptions.APIForbidden
 
             photo_dicts = []
-            for m in postcard.photo_set.all():
-                photo_dicts.append(api_serialize(m, request))
+            for p in postcard.postcardcontent_set.all():
+                photo_dicts.append(api_serialize(p, request))
 
         return APIResponseOK(content=photo_dicts)
 
@@ -107,20 +107,20 @@ class PostcardAPI(rest.ResourceView):
                 raise exceptions.APIBadRequest('Invalid file type!')
 
             photo.create_file_from_data(request.raw_post_data, mime_type)
-            return APIResponseOK(content=api_serialize(photo))
+            return APIResponseOK(content=api_serialize(photo.contentmodel))
 
         else:
             photo = photo_from_post(request, postcard_id)
             photo.save()
 
-            return APIResponseCreated(content=api_serialize(photo, request), location=photo.get_api_uri())
+            return APIResponseCreated(content=api_serialize(photo.contentmodel, request), location=photo.get_api_uri())
 
 
 def check_postcard_photo(postcard_id, photo_id):
     postcard = get_object(models.Postcard, id=postcard_id)
     try:
-        postcard.photo_set.get(id=photo_id)
-    except models.Photo.DoesNotExist:
+        postcard.postcardcontent_set.get(id=photo_id)
+    except models.PostcardContent.DoesNotExist:
         raise exceptions.APIBadRequest('Photo is not part of this postcard')
     return postcard
 

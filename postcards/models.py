@@ -9,6 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from locast.api import datetostr
 from locast.models import ModelBase, modelbases, interfaces, managers
+from locast.models.modelbases import LocastContent
 
 class Postcard(ModelBase,
     interfaces.PrivatelyAuthorable,
@@ -22,13 +23,15 @@ class Postcard(ModelBase,
     def get_api_uri(self):
         return ('postcard_single_api', [str(self.id)])
 
-    #def get_absolute_url(self):
-    #    return reverse('frontpage') + '#!cast/' + str(self.id) + '/'
+    def get_absolute_url(self):
+        return reverse('home') + '#!/postcard/' + str(self.id) + '/'
 
     def __unicode__(self):
         return u'%s (id: %s)' % (self.title, str(self.id))
 
     objects = GeoManager()
+
+    content_state = models.PositiveSmallIntegerField(choices=LocastContent.STATE_CHOICES, default = LocastContent.STATE_INCOMPLETE, blank=True)
 
     gif_preview = models.FileField(
             upload_to='derivatives/%Y/%m/%d/', 
@@ -38,11 +41,17 @@ class Postcard(ModelBase,
     def api_serialize(self, request):
         d = {}
         d['photos'] = reverse('postcard_photo_api', kwargs={'postcard_id':self.id})
+
+        if self.gif_preview:
+            d['gif_preview'] = self.gif_preview.url
+
         return d
 
     def process(self):
         if self.postcardcontent_set.count():
             self.create_animated_gif()
+
+        self.save()
 
     def create_animated_gif(self):
         filename = 'animated_%s.gif' % self.id
@@ -55,16 +64,16 @@ class Postcard(ModelBase,
         subprocess.call(images_to_gif_args)
 
 # Generic holder for media content.
-class PostcardContent(modelbases.LocastContent):
+class PostcardContent(modelbases.LocastContent,
+        interfaces.Authorable,
+        interfaces.Locatable,
+        interfaces.Titled):
 
     objects = models.Manager()
 
     postcard = models.ForeignKey(Postcard)
 
 class Photo(PostcardContent,
-        interfaces.Authorable,
-        interfaces.Locatable,
-        interfaces.Titled,
         modelbases.ImageContent):
 
     class Meta:
@@ -76,13 +85,6 @@ class Photo(PostcardContent,
 
     def __unicode__(self):
         return u'%s (id: %s, postcard: %s)' % (self.title, str(self.id), self.postcard.title)
-
-    def api_serialize(self, request):
-        d = {}
-        if self.file:
-            d['primary'] = modelbases.LocastContent.serialize_resource(self.file.url)
-
-        return d
 
 class PostcardUserManager(managers.LocastUserManager): pass
 
