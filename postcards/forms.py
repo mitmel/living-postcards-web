@@ -3,6 +3,7 @@ from django import forms
 from postcards import models
 
 from django.contrib.auth.forms import UserCreationForm
+from django.utils.translation import ugettext_lazy as _
 
 # Used in the API to valudate input
 class PostcardAPIForm(forms.ModelForm):
@@ -17,7 +18,16 @@ class PhotoAPIForm(forms.ModelForm):
         fields = ('author', 'title', 'description', 'postcard')
 
 class RegisterForm(UserCreationForm):
+    email = forms.EmailField(label=_('Email'))
+
     class Meta:
         model = models.PostcardUser
-        fields = ('username',)
+        fields = ('username','email')
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if len(models.PostcardUser.objects.filter(email=email)):
+            raise forms.ValidationError(_('This Email has already been registered.'))
+
+        return email
 

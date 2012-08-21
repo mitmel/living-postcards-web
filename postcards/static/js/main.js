@@ -1,3 +1,5 @@
+var dispatcher = _.clone(Backbone.Events);
+
 $(function() {
 
 /* MODELS */
@@ -22,8 +24,7 @@ var PostcardCollection = Backbone.Collection.extend({
 
 /* VIEWS */
 
-var PostcardView = Backbone.View.extend({
-
+var PostcardSingleView = Backbone.View.extend({
     template: _.template($('#postcard-templ').html()),
 
     id: 'postcard-view',
@@ -33,7 +34,37 @@ var PostcardView = Backbone.View.extend({
         this.$el.html(html);
         return this;
     }
+});
 
+var PostcardGallery = Backbone.View.extend({
+    template: _.template($('#postcard-gallery-templ').html()),
+
+    id: 'gallery',
+
+    initialize: function() {
+        var _this = this;
+        _this.postcardListView = new PostcardListView({model:_this.model});
+        console.log(_this.model);
+        _this.model.on('reset', function() {
+            _this.postcardListView.$el.hide();
+            _this.$el.append(_this.postcardListView.render().el);
+            _this.postcardListView.$el.fadeIn();
+        });
+        // bind something when this model gets reset!
+    },
+
+    render: function(eventName) {
+        var _this = this;
+        _this.$el.html(_this.template());
+        _this.$el.find('.gallery-sort').click(function(){ 
+            var orderby = $(this).attr('id');
+            _this.model.fetch({data: 
+                { 'orderby': orderby },
+            });
+            return false;
+        });
+        return _this;
+    },
 });
 
 var PostcardListView = Backbone.View.extend({
@@ -42,15 +73,19 @@ var PostcardListView = Backbone.View.extend({
    
     className: 'postcard-list',
 
-    page: 1,
-
-    // do something on add of the collection
-
     render: function(eventName) {
         var html = this.template({'postcards': this.model.toJSON()});
         this.$el.html(html);
         return this;
     },
+});
+
+var MapView = Backbone.View.extend({
+    id: 'main-map',
+
+    render: function(eventName) {
+        return this;
+    }
 });
 
 /* APP */
@@ -65,47 +100,68 @@ var AppRouter = Backbone.Router.extend({
     },
 
     home: function () {
+        // close last view
+        dispatcher.trigger('closeView');
+
         $('#content').html('HOME');
     },
 
     gallery: function () {
-        if ( !this.postcardListView ) {
-            var postcardListColl = new PostcardCollection();
-            this.postcardListView = new PostcardListView({ model: postcardListColl });
+        dispatcher.trigger('closeView');
 
-            postcardListColl.fetch({
-                data: {page: this.page},
-                success: function() { 
-                    $('#content').html(app.postcardListView.render().el);
-                }
-            });
+        if ( !app.postcardGallery ) {
+            app.postcardCollection = new PostcardCollection();
+            app.postcardGallery = new PostcardGallery({'model': app.postcardCollection});
+            app.postcardGallery.model.fetch();
         }
-        else {
-            $('#content').html(this.postcardListView.render().el);
-        }
+        $('#content').html(app.postcardGallery.render().el);
     },
 
     postcard: function (id) {
+        dispatcher.trigger('closeView');
+
         var postcard = null;
-        if ( this.postcardListView ) {
-            postcard = this.postcardListView.model.get(id);
-            this.postcardView = new PostcardView({ model: postcard });
-            $('#content').html(this.postcardView.render().el);
+        if ( app.postcardListView ) {
+            postcard = app.postcardListView.model.get(id);
+            app.postcardSingleView = new PostcardSingleView({ model: postcard });
+            $('#content').html(app.postcardSingleView.render().el);
         }
         else {
             postcard = new Postcard({'id': id});
             postcard.fetch({
                 success: function(postcard) {
                     // TODO: this duplicates code
-                    this.postcardView = new PostcardView({model: postcard });
-                    $('#content').html(this.postcardView.render().el);
+                    app.postcardSingleView = new PostcardSingleView({model: postcard });
+                    $('#content').html(app.postcardSingleView.render().el);
                 }
             });
         }
+        create_facebook_like();
+
+        // on view close, cleanup
+        dispatcher.on('closeView', function() {
+            $('#facebook-like').html('');
+            dispatcher.off('closeView');
+        });
     },
 
     map: function() {
-        $('#content').html('A wild map appears!');
+        dispatcher.trigger('closeView');
+
+        this.mapView = new MapView();
+        var map = new Map();
+
+        $('#content').html(this.mapView.render().el);
+        map.init(this.mapView.el.id);
+
+        $.get(GEOFEATURES_API_URL, function(data) {
+            map.renderFeatures(data);
+        });
+
+        dispatcher.on('closeView', function() {
+            //alert('map closed');
+            dispatcher.off('closeView');
+        });
     }
 });
 
@@ -114,3 +170,23 @@ Backbone.history.start();
 });
 
 var app = null;
+
+function create_facebook_like() {
+    $('#facebook-like').html('<fb:like send="true" width="450" show_faces="false" font="arial"></fb:like>');
+    // if FB doesn't exist that means that it hasn't been loaded yet
+    // and when it does get loaded, it will auto parse the page.
+    if ( typeof FB != 'undefined' && FB != null ) {
+        FB.XFBML.parse();
+    }
+}
+
+function update_facebook_likes(url) {
+    // get id from url
+    var match = /.*postcard\/([0-9]*)/.exec(url);
+    var id = parseInt(match[1]);
+
+    var url = FACEBOOK_LIKES_API_URL;
+
+    $.post(url, {'id': match[1]});
+}
+

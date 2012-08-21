@@ -1,4 +1,5 @@
 <!doctype html>
+<html xmlns:fb="http://ogp.me/ns/fb#">
 <!--[if lt IE 7]> <html class="lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
 <!--[if IE 7]>    <html class="lt-ie9 lt-ie8" lang="en"> <![endif]-->
 <!--[if IE 8]>    <html class="lt-ie9" lang="en"> <![endif]-->
@@ -17,17 +18,61 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/0.9.2/backbone-min.js"></script>
 
     <script src="{% url context_js %}"></script>
+    <script src="{{STATIC_URL}}js/OpenLayers.js"></script>
+    <script src="{{STATIC_URL}}js/cloudmade.js"></script>
+    <script src="{{STATIC_URL}}js/map.js"></script>
     <script src="{{STATIC_URL}}js/main.js"></script>
+    {% block head %}{% endblock %}
 </head>
 <body>
-<script type="text/template" id="postcard-list-templ">
+<div id="fb-root"></div>
+<script>
+window.fbAsyncInit = function() {
+    FB.init({
+        appId      : '460703700630287', // App ID
+        channelUrl : '//WWW.YOUR_DOMAIN.COM/channel.html', // Channel File
+        status     : false, // check login status
+        cookie     : false, // enable cookies to allow the server to access the session
+        xfbml      : true  // parse XFBML
+    });
+
+    FB.Event.subscribe('edge.create',
+        function(response) {
+            update_facebook_likes(response);
+        }
+    );
+
+    FB.Event.subscribe('edge.remove',
+        function(response) {
+            update_facebook_likes(response);
+        }
+    );
+};
+
+(function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/all.js";
+    fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+
+</script>
+
+<script type="text/template" id="postcard-gallery-templ">
     <div id="gallery">
+        <span><a class="gallery-sort" id="-created" href="#">Recent</a></span>
+        <span><a class="gallery-sort" id="-popularity" href="#">Popular</a></span>
+        <span><a id="load-more" href="#">load more!</a></span>
+    </div>
+</script>
+
+<script type="text/template" id="postcard-list-templ">
     <% _.each(postcards, function(postcard) { %>
         <a href="<%= postcard.url %>">
             <img src="<%= postcard.gif_preview %>"></img> 
         </a>
     <% }); %>
-    </div>
 </script>
 <script type="text/template" id="postcard-templ">
     <div>
@@ -36,12 +81,19 @@
     </div>
 </script>
 
+<div id="facebook-like"></div>
+
 {% block "body" %}{% endblock %}
 <script>
     var _gaq=[['_setAccount','{{GOOGLE_ANALYTICS_ID}}'],['_trackPageview']];
     (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
     g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
     s.parentNode.insertBefore(g,s)}(document,'script'));
+
+    {% if fragment %}
+        var fragment = '{{fragment}}';
+        window.location = HOME_URL + '#!' + fragment;
+    {% endif %}
 </script>
 </body>
 </html>

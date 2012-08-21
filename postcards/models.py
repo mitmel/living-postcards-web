@@ -1,15 +1,19 @@
+import settings
 import subprocess
+import urllib2
 
 from django.contrib.gis.db.models.manager import GeoManager
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.utils import simplejson as json
 from django.utils.translation import ugettext_lazy as _
 
 from locast.api import datetostr
 from locast.models import ModelBase, modelbases, interfaces, managers
 from locast.models.modelbases import LocastContent
+
 
 class Postcard(ModelBase,
     interfaces.PrivatelyAuthorable,
@@ -31,7 +35,12 @@ class Postcard(ModelBase,
 
     objects = GeoManager()
 
-    content_state = models.PositiveSmallIntegerField(choices=LocastContent.STATE_CHOICES, default = LocastContent.STATE_INCOMPLETE, blank=True)
+    content_state = models.PositiveSmallIntegerField(choices=LocastContent.STATE_CHOICES, default=LocastContent.STATE_INCOMPLETE, blank=True)
+
+    facebook_likes = models.PositiveIntegerField(default=0)
+
+    # popularity
+    # facebook_likes + favorited
 
     gif_preview = models.FileField(
             upload_to='derivatives/%Y/%m/%d/', 
@@ -40,6 +49,7 @@ class Postcard(ModelBase,
 
     def api_serialize(self, request):
         d = {}
+        d['facebook_likes'] = self.facebook_likes
         d['photos'] = reverse('postcard_photo_api', kwargs={'postcard_id':self.id})
 
         if self.gif_preview:
@@ -47,13 +57,26 @@ class Postcard(ModelBase,
 
         return d
 
-    def process(self):
-        if self.postcardcontent_set.count():
-            self.create_animated_gif()
+    def geojson_properties(self, request):
+        d = {}
+        d['id'] = self.id
+        d['title'] = self.title
 
-        self.save()
+        return d
 
-    def create_animated_gif(self):
+    def process(self, verbose=False):
+        if self.postcardcontent_set.count() and self.content_state == LocastContent.STATE_COMPLETE:
+            self.content_state = LocastContent.STATE_PROCESSING
+            self.save()
+
+            if self.gif_preview:
+                self.gif_preview.delete()
+
+            self.create_gif_preview(verbose=verbose)
+            self.content_state = LocastContent.STATE_FINISHED
+            self.save()
+
+    def create_gif_preview(self, verbose=False):
         filename = 'animated_%s.gif' % self.id
         self.gif_preview.save(filename, ContentFile(''), False)
         images_to_gif_args = ['lcvideo_images_to_gif', self.gif_preview.path]
@@ -61,7 +84,25 @@ class Postcard(ModelBase,
             if i.content.file:
                 images_to_gif_args.append(i.content.file.path)
 
-        subprocess.call(images_to_gif_args)
+        stdout = None
+        if verbose:
+            stdout = subprocess.PIPE
+
+        subprocess.call(images_to_gif_args, stdout=stdout)
+
+    def update_facebook_likes(self):
+        # https://graph.facebook.com/?id=http://mel-pydev.mit.edu/avea/?_escaped_fragment_=/postcard/1/
+        postcard_url = settings.HOST + self.get_absolute_url().replace('#!','?_escaped_fragment_=')
+        url = 'https://graph.facebook.com/?id=' + postcard_url
+        response = urllib2.urlopen(url)
+        fb_data = json.loads(response.read())
+        if 'shares' in fb_data:
+            self.facebook_likes = fb_data['shares']
+        else:
+            self.facebook_likes = 0
+
+        self.save()
+
 
 # Generic holder for media content.
 class PostcardContent(modelbases.LocastContent,
@@ -72,6 +113,7 @@ class PostcardContent(modelbases.LocastContent,
     objects = models.Manager()
 
     postcard = models.ForeignKey(Postcard)
+
 
 class Photo(PostcardContent,
         modelbases.ImageContent):
@@ -86,9 +128,21 @@ class Photo(PostcardContent,
     def __unicode__(self):
         return u'%s (id: %s, postcard: %s)' % (self.title, str(self.id), self.postcard.title)
 
+    def post_save(self):
+        # If it is marked as FINISHED or INCOMPLETE, it needs to be processed, so set it to complete
+        if self.postcard and \
+            (self.postcard.content_state == LocastContent.STATE_FINISHED \
+            or self.postcard.content_state == LocastContent.STATE_INCOMPLETE):
+
+            self.postcard.content_state = LocastContent.STATE_COMPLETE            
+            self.postcard.save()
+
+
 class PostcardUserManager(managers.LocastUserManager): pass
 
+
 class UserActivity(modelbases.UserActivity): pass
+
 
 class PostcardUser(modelbases.LocastUser):
 

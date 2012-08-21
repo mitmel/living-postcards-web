@@ -95,3 +95,7 @@ td { vertical-align: top; }
 }
 
 #gallery img { width: 320px; margin: 5px; }
+
+#main-map { width: 640px; height: 480px; }
+
+#facebook-like { position: absolute; top: 500px; left: 5px; }
