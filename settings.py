@@ -127,6 +127,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'south',
+    'sorl.thumbnail',
     'postcards',
 )
 
@@ -142,10 +143,13 @@ AUTH_PROFILE_MODULE = 'postcards.PostcardUserProfile'
 
 DEFAULT_PRIVACY = 2
 
+FACEBOOK_APP_ID = ''
+
 CONTEXT_VARIABLES = (
     'HOST',
     'BASE_URL',
     'FULL_BASE_URL',
+    'FACEBOOK_APP_ID',
 )
 
 # A sample logging configuration. The only tangible logging

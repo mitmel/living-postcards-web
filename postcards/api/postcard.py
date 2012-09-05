@@ -96,6 +96,7 @@ class PostcardAPI(rest.ResourceView):
     @require_http_auth
     def post_photo(request, postcard_id, photo_id = None):
 
+        # If there is a photo_id, posting raw photo data to a photo
         if photo_id:
             photo = get_object(models.Photo, id = photo_id)
             check_postcard_photo(postcard_id, photo_id)
@@ -109,6 +110,7 @@ class PostcardAPI(rest.ResourceView):
             photo.create_file_from_data(request.raw_post_data, mime_type)
             return APIResponseOK(content=api_serialize(photo.contentmodel))
 
+        # If there is not, posting a new photo object
         else:
             photo = photo_from_post(request, postcard_id)
             photo.save()

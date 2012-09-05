@@ -2,14 +2,18 @@
 
 {% block "body" %}
 <header>
-    Living Postcards
-    <a href="#">Home</a>
-    <a href="#!/gallery/">Gallery</a>
-    <a href="#!/map/">Map</a>
+        <div id="silhouette"></div>
+        <a href=""><h1 class="logo">Living Postcards</h1></a>
+	<div id="nav">
+		<ul>
+			<li><a href="#!/gallery/">Gallery</a></li>
+			<li><a href="#!/about/">About</a></li>
+		</ul>		
+	</div>
 </header>
 <div role="main">
 <!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
-    <div id="content"></div>
+    <div id="content" class="container" ></div>
 </div>
 <footer>
 <div id="footer-links">

@@ -14,6 +14,7 @@ from locast.api import datetostr
 from locast.models import ModelBase, modelbases, interfaces, managers
 from locast.models.modelbases import LocastContent
 
+from sorl.thumbnail import get_thumbnail
 
 class Postcard(ModelBase,
     interfaces.PrivatelyAuthorable,
@@ -37,23 +38,44 @@ class Postcard(ModelBase,
 
     content_state = models.PositiveSmallIntegerField(choices=LocastContent.STATE_CHOICES, default=LocastContent.STATE_INCOMPLETE, blank=True)
 
-    facebook_likes = models.PositiveIntegerField(default=0)
-
     # popularity
     # facebook_likes + favorited
+    facebook_likes = models.PositiveIntegerField(default=0)
 
-    gif_preview = models.FileField(
+    animated_render = models.FileField(
             upload_to='derivatives/%Y/%m/%d/', 
             blank=True,
             help_text=_('Created automatically.'))
 
+    @property
+    def cover_photo(self):
+        if self.postcardcontent_set.count():
+            photo = self.postcardcontent_set.all()[0].content.file
+            return get_thumbnail(photo, '640', quality=75)
+
+        return None
+            
+    @property
+    def thumbnail(self):
+        if self.cover_photo:
+            return get_thumbnail(self.cover_photo, '150', quality=75)
+
+        return None
+
+
     def api_serialize(self, request):
         d = {}
+        resc = {}
+        if self.cover_photo:
+            resc['cover_photo'] = LocastContent.serialize_resource(self.cover_photo.url)
+        if self.thumbnail:
+            resc['thumbnail'] = LocastContent.serialize_resource(self.thumbnail.url)
+        if self.animated_render:
+            resc['animated_render'] = LocastContent.serialize_resource(self.animated_render.url)
+
+        d['resources'] = resc
         d['facebook_likes'] = self.facebook_likes
         d['photos'] = reverse('postcard_photo_api', kwargs={'postcard_id':self.id})
-
-        if self.gif_preview:
-            d['gif_preview'] = self.gif_preview.url
 
         return d
 
@@ -69,17 +91,17 @@ class Postcard(ModelBase,
             self.content_state = LocastContent.STATE_PROCESSING
             self.save()
 
-            if self.gif_preview:
-                self.gif_preview.delete()
+            if self.animated_render:
+                self.animated_render.delete()
 
-            self.create_gif_preview(verbose=verbose)
+            self.create_animated_render(verbose=verbose)
             self.content_state = LocastContent.STATE_FINISHED
             self.save()
 
-    def create_gif_preview(self, verbose=False):
+    def create_animated_render(self, verbose=False):
         filename = 'animated_%s.gif' % self.id
-        self.gif_preview.save(filename, ContentFile(''), False)
-        images_to_gif_args = ['lcvideo_images_to_gif', self.gif_preview.path]
+        self.animated_render.save(filename, ContentFile(''), False)
+        images_to_gif_args = ['lcvideo_images_to_gif', self.animated_render.path]
         for i in self.postcardcontent_set.all():
             if i.content.file:
                 images_to_gif_args.append(i.content.file.path)

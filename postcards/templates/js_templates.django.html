@@ -1,0 +1,38 @@
+<script type="text/template" id="postcard-gallery-templ">
+    <div id="content-nav" class="btn-group">
+            <button class="btn gallery-sort" id="-created"> <i class="icon-time"></i> Recent</button>
+            <button class="btn gallery-sort" id="-popularity"> <i class="icon-star"></i> Popular</button>
+            <button class="btn gallery-sort"> <i class="icon-map-marker"></i> Map</button>
+    </div>
+</script>
+
+<script type="text/template" id="postcard-list-templ">
+    <% _.each(postcards, function(postcard) { %>
+        <div class="postcard span4"> 
+            <a href="<%= postcard.url %>">
+                <div class="postcard-image">
+                    <img class="thumb still" src="<%= postcard.resources.cover_photo.url %>">
+                    <img class="thumb gif" src="<%= postcard.resources.animated_render.url %>">
+                </div>
+                <h4 class="title"><%= postcard.title %></h4>
+                <h5 class="author"><%= postcard.author.display_name %></h5>
+            </a>   
+        </div>
+    <% }); %>
+</script>
+
+<script type="text/template" id="postcard-templ">
+    <div class="postcard row">
+        <div class="postcard-image clearfix offset1 span8">
+            <img class="gif" src="<%= postcard.resources.animated_render.url %>"></img>
+        </div>    
+        <div class="details span2">
+            <h3 class="title"><%= postcard.title %></h3>
+            <h4 class="author"><%= postcard.author.display_name %></h4>
+            <div class="description">
+                <p><%= postcard.description %></p>
+            </div>
+            <div id="facebook-like"></div>
+        </div> 
+    </div>
+</script>

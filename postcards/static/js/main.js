@@ -15,15 +15,18 @@ var PostcardCollection = Backbone.Collection.extend({
 
     url: POSTCARD_API_URL,
 
-    /*
     parse: function(response) {
         // check if there are any more items to get
+        
+        // remove items without an animated_render
+        // TODO: maybe they should have a place holder?
+        return _.reject(response, function(postcard) {
+            return !(_.has(postcard.resources, 'animated_render'));
+        });
     }
-    */
 });
 
 /* VIEWS */
-
 var PostcardSingleView = Backbone.View.extend({
     template: _.template($('#postcard-templ').html()),
 
@@ -45,33 +48,39 @@ var PostcardGallery = Backbone.View.extend({
         var _this = this;
         _this.postcardListView = new PostcardListView({model:_this.model});
         console.log(_this.model);
+
+        // On a reload of the collection, rerender the list
         _this.model.on('reset', function() {
             _this.postcardListView.$el.hide();
             _this.$el.append(_this.postcardListView.render().el);
             _this.postcardListView.$el.fadeIn();
         });
-        // bind something when this model gets reset!
     },
 
     render: function(eventName) {
         var _this = this;
         _this.$el.html(_this.template());
-        _this.$el.find('.gallery-sort').click(function(){ 
+
+        // on clicking a gallery sort link
+        _this.$el.find('.gallery-sort').click(function() {
             var orderby = $(this).attr('id');
+            $('.gallery-sort').removeClass('active');
+            $(this).addClass('active');
             _this.model.fetch({data: 
                 { 'orderby': orderby },
             });
             return false;
-        });
+        }); 
         return _this;
     },
+
 });
 
 var PostcardListView = Backbone.View.extend({
 
     template: _.template($('#postcard-list-templ').html()),
    
-    className: 'postcard-list',
+    className: 'postcard-list row',
 
     render: function(eventName) {
         var html = this.template({'postcards': this.model.toJSON()});
@@ -109,11 +118,11 @@ var AppRouter = Backbone.Router.extend({
     gallery: function () {
         dispatcher.trigger('closeView');
 
-        if ( !app.postcardGallery ) {
+        //if ( !app.postcardGallery ) {
             app.postcardCollection = new PostcardCollection();
             app.postcardGallery = new PostcardGallery({'model': app.postcardCollection});
             app.postcardGallery.model.fetch();
-        }
+        //}
         $('#content').html(app.postcardGallery.render().el);
     },
 
@@ -125,6 +134,7 @@ var AppRouter = Backbone.Router.extend({
             postcard = app.postcardListView.model.get(id);
             app.postcardSingleView = new PostcardSingleView({ model: postcard });
             $('#content').html(app.postcardSingleView.render().el);
+            create_facebook_like();
         }
         else {
             postcard = new Postcard({'id': id});
@@ -133,10 +143,10 @@ var AppRouter = Backbone.Router.extend({
                     // TODO: this duplicates code
                     app.postcardSingleView = new PostcardSingleView({model: postcard });
                     $('#content').html(app.postcardSingleView.render().el);
+                    create_facebook_like();
                 }
             });
         }
-        create_facebook_like();
 
         // on view close, cleanup
         dispatcher.on('closeView', function() {
@@ -172,7 +182,7 @@ Backbone.history.start();
 var app = null;
 
 function create_facebook_like() {
-    $('#facebook-like').html('<fb:like send="true" width="450" show_faces="false" font="arial"></fb:like>');
+    $('#facebook-like').html('<fb:like send="true" width="450" show_faces="false" font="arial" data-layout="button_count"></fb:like>');
     // if FB doesn't exist that means that it hasn't been loaded yet
     // and when it does get loaded, it will auto parse the page.
     if ( typeof FB != 'undefined' && FB != null ) {
