@@ -79,7 +79,7 @@ class PostcardAPI(rest.ResourceView):
             photo = get_object(models.Photo, photo_id)
             check_postcard_photo(postcard_id, photo_id)
 
-            return APIResponseOK(content=api_serialize(photo.contentmodel0))
+            return APIResponseOK(content=api_serialize(photo.contentmodel))
 
         else:
             postcard = get_object(models.Postcard, postcard_id)
@@ -116,6 +116,10 @@ class PostcardAPI(rest.ResourceView):
             photo.save()
 
             return APIResponseCreated(content=api_serialize(photo.contentmodel, request), location=photo.get_api_uri())
+
+    @optional_http_auth
+    def get_authors(request, postcard_id):
+        pass
 
 
 def check_postcard_photo(postcard_id, photo_id):

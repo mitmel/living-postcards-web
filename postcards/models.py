@@ -17,6 +17,7 @@ from locast.models.modelbases import LocastContent
 from sorl.thumbnail import get_thumbnail
 
 class Postcard(ModelBase,
+    interfaces.UUID,
     interfaces.PrivatelyAuthorable,
     interfaces.Titled,
     interfaces.Locatable):
@@ -47,11 +48,14 @@ class Postcard(ModelBase,
             blank=True,
             help_text=_('Created automatically.'))
 
+    frame_delay = models.IntegerField(default=300)
+
     @property
     def cover_photo(self):
         if self.postcardcontent_set.count():
             photo = self.postcardcontent_set.all()[0].content.file
-            return get_thumbnail(photo, '640', quality=75)
+            if photo:
+                return get_thumbnail(photo, '640', quality=75)
 
         return None
             
@@ -62,6 +66,13 @@ class Postcard(ModelBase,
 
         return None
 
+    # all users who contributed
+    @property
+    def authors(self):
+        authors = [self.author]
+        if self.postcardcontent_set.count():
+            for p in self.postcardcontent_set:
+                authors.append(p.author)
 
     def api_serialize(self, request):
         d = {}
@@ -74,6 +85,7 @@ class Postcard(ModelBase,
             resc['animated_render'] = LocastContent.serialize_resource(self.animated_render.url)
 
         d['resources'] = resc
+        d['frame_delay'] = self.frame_delay
         d['facebook_likes'] = self.facebook_likes
         d['photos'] = reverse('postcard_photo_api', kwargs={'postcard_id':self.id})
 
@@ -101,8 +113,13 @@ class Postcard(ModelBase,
     def create_animated_render(self, verbose=False):
         filename = 'animated_%s.gif' % self.id
         self.animated_render.save(filename, ContentFile(''), False)
-        images_to_gif_args = ['lcvideo_images_to_gif', self.animated_render.path]
-        for i in self.postcardcontent_set.all():
+        images_to_gif_args = ['lcvideo_images_to_gif', unicode(self.frame_delay), self.animated_render.path]
+
+        photos = self.postcardcontent_set.all()
+        if self.frame_delay < 0:
+            photos.reverse()
+
+        for i in photos:
             if i.content.file:
                 images_to_gif_args.append(i.content.file.path)
 
@@ -128,6 +145,7 @@ class Postcard(ModelBase,
 
 # Generic holder for media content.
 class PostcardContent(modelbases.LocastContent,
+        interfaces.UUID,
         interfaces.Authorable,
         interfaces.Locatable,
         interfaces.Titled):
@@ -168,9 +186,9 @@ class UserActivity(modelbases.UserActivity): pass
 
 class PostcardUser(modelbases.LocastUser):
 
-    #@models.permalink
-    #def get_api_uri(self):
-    #    return ('user_api_single', [str(self.id)])
+    @models.permalink
+    def get_api_uri(self):
+        return ('user_api_single', [str(self.id)])
 
     def __unicode__(self):
         if self.email:

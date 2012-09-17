@@ -2,18 +2,20 @@
 
 dir=`mktemp -d`
 
-if [ -z "$1" ] ; then 
-    echo usage: $0 output file1 file2 file3 ...
+if [ -z "$3" ] ; then 
+    echo usage: $0 delay output file1 file2 file3 ...
     exit
 fi
 
+# i counts through arguments, j increments file names
 i=0
+j=1
 for var in "$@" ; do
-    if [ $i -gt 0 ]; then
-        cp ${var} ${dir}/image${i}.jpg
+    if [ $i -gt 1 ]; then
+        cp ${var} ${dir}/image_${j}.jpg
     fi
     let i=i+1
+    let j=j+1
 done
 
-convert -delay 100 -loop 0 -layers Optimize -resize 640x480 ${dir}/image*.jpg $1
-
+convert -delay $1 -loop 0 -layers Optimize -resize 640x480 ${dir}/image*.jpg $2

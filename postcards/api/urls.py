@@ -6,6 +6,11 @@ urlpatterns = patterns('postcards.api',
 
     url(r'^postcard/(?P<postcard_id>\d+)/photo/(?P<photo_id>\d+)/$', 'postcard.PostcardAPI', name='postcard_photo_single_api', kwargs={'method':'photo'}),
     url(r'^postcard/(?P<postcard_id>\d+)/photo/$', 'postcard.PostcardAPI', name='postcard_photo_api', kwargs={'method':'photo'}),
+
+    url(r'^user/(?P<user_id>\d+)/$', 'user.UserAPI', name='user_api_single'),
+    url(r'^user/me$', 'user.UserAPI', kwargs={'method':'me'}),
+    url(r'^user/$', 'user.UserAPI', name='user_api'),
+
     url(r'^geofeatures/$', 'postcard.get_geofeatures', name='geofeatures_api'),
 
     url(r'^update_facebook_likes/$', 'postcard.update_facebook_likes', name='update_facebook_likes'),

@@ -9,13 +9,15 @@ from django.utils.translation import ugettext_lazy as _
 class PostcardAPIForm(forms.ModelForm):
     class Meta: 
         model = models.Postcard
-        fields = ('author', 'title', 'description', 'privacy')
+        fields = ('uuid', 'author', 'title', 'description', 'privacy', 'frame_delay')
+
+    frame_delay = forms.IntegerField(max_value = 2000, min_value = -2000)
 
 # Used in the API to valudate input
 class PhotoAPIForm(forms.ModelForm):
     class Meta: 
         model = models.Photo
-        fields = ('author', 'title', 'description', 'postcard')
+        fields = ('uuid', 'author', 'title', 'description', 'postcard')
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(label=_('Email'))

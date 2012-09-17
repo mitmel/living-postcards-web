@@ -109,6 +109,10 @@ MIDDLEWARE_CLASSES = (
     'locast.middleware.LocastMiddleware',
 )
 
+AUTHENTICATION_BACKENDS = (
+    'locast.auth.backends.LocastUsernameBackend',
+)
+
 ROOT_URLCONF = 'postcards.urls'
 
 TEMPLATE_DIRS = (
