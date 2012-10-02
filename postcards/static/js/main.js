@@ -20,6 +20,8 @@ var PostcardCollection = Backbone.Collection.extend({
         
         // remove items without an animated_render
         // TODO: maybe they should have a place holder?
+        //
+        // NOTE: they currently don't get sent from the API
         return _.reject(response, function(postcard) {
             return !(_.has(postcard.resources, 'animated_render'));
         });
@@ -44,10 +46,15 @@ var PostcardGallery = Backbone.View.extend({
 
     id: 'gallery',
 
+    orderby: '-created',
+
+    page: 1,
+
+    pagesize: 99,
+
     initialize: function() {
         var _this = this;
         _this.postcardListView = new PostcardListView({model:_this.model});
-        console.log(_this.model);
 
         // On a reload of the collection, rerender the list
         _this.model.on('reset', function() {
@@ -57,22 +64,36 @@ var PostcardGallery = Backbone.View.extend({
         });
     },
 
+    fetch: function() {
+        var _this = this;
+        _this.model.fetch({data: 
+            { 
+                'orderby': _this.orderby,
+                //'page': _this.page,
+                //'pagesize': _this.pagesize
+            },
+        });
+    },
+
     render: function(eventName) {
         var _this = this;
         _this.$el.html(_this.template());
+
+        // Recent activated by default
 
         // on clicking a gallery sort link
         _this.$el.find('.gallery-sort').click(function() {
             var orderby = $(this).attr('id');
             $('.gallery-sort').removeClass('active');
             $(this).addClass('active');
-            _this.model.fetch({data: 
-                { 'orderby': orderby },
-            });
+            _this.orderby = orderby;
+            _this.fetch();
             return false;
         }); 
+
         return _this;
     },
+
 
 });
 
@@ -93,6 +114,8 @@ var MapView = Backbone.View.extend({
     id: 'main-map',
 
     render: function(eventName) {
+        var html = 'Map is in progress!'
+        this.$el.html(html);
         return this;
     }
 });
@@ -117,13 +140,36 @@ var AppRouter = Backbone.Router.extend({
 
     gallery: function () {
         dispatcher.trigger('closeView');
+        var gallery = null;
 
-        //if ( !app.postcardGallery ) {
+        if ( !app.postcardGallery ) {
             app.postcardCollection = new PostcardCollection();
-            app.postcardGallery = new PostcardGallery({'model': app.postcardCollection});
-            app.postcardGallery.model.fetch();
-        //}
-        $('#content').html(app.postcardGallery.render().el);
+            gallery = new PostcardGallery({'model': app.postcardCollection});
+            gallery.fetch();
+        }
+        else {
+            gallery = app.postcardGallery;
+        }
+
+        // rerender without refetching
+        $('#content').html(gallery.render().el);
+        gallery.$el.append(gallery.postcardListView.render().el);
+        
+        if ( !app.postcardGallery ) {
+            $('#-created.gallery-sort').addClass('active');
+            app.postcardGallery = gallery;
+        }
+
+        $(window).scroll(function () { 
+            if ($(window).scrollTop() >= $(document).height() - $(window).height() - 10) {
+                console.log('infinite scroll!');
+                //Add something at the end of the page
+            }
+        });
+
+        dispatcher.on('closeView', function() {
+            $(window).unbind('scroll');
+        });
     },
 
     postcard: function (id) {
@@ -159,9 +205,11 @@ var AppRouter = Backbone.Router.extend({
         dispatcher.trigger('closeView');
 
         this.mapView = new MapView();
-        var map = new Map();
+        //var map = new Map();
 
         $('#content').html(this.mapView.render().el);
+
+        /*
         map.init(this.mapView.el.id);
 
         $.get(GEOFEATURES_API_URL, function(data) {
@@ -172,6 +220,7 @@ var AppRouter = Backbone.Router.extend({
             //alert('map closed');
             dispatcher.off('closeView');
         });
+        */
     }
 });
 
@@ -199,4 +248,3 @@ function update_facebook_likes(url) {
 
     $.post(url, {'id': match[1]});
 }
-

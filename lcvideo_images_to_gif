@@ -12,10 +12,15 @@ i=0
 j=1
 for var in "$@" ; do
     if [ $i -gt 1 ]; then
-        cp ${var} ${dir}/image_${j}.jpg
+        # leading 0's
+        suf=$(printf "%03d" "$j")
+
+        cp ${var} ${dir}/image_${suf}.jpg
+        let j=j+1
     fi
     let i=i+1
-    let j=j+1
 done
 
 convert -delay $1 -loop 0 -layers Optimize -resize 640x480 ${dir}/image*.jpg $2
+
+rm -rf ${dir}

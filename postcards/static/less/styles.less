@@ -47,6 +47,12 @@
 
 /* Base Styles for Living Postcards */
 
+//max height for postcards: need to set so they float in a grid
+@pcHeight:280px;
+@pcHeight1200:340px;
+@pcHeight768:240px;
+
+
 html {
         background-color:@paleBlue;
 }
@@ -115,7 +121,7 @@ header{
 
 .postcard-border(@border-width:15){
      @half-border: @border-width*.5;
-     @shadow-rule: ~"0 0 @{half-border}px 1px @{grayLight},0 0 0 @{border-width}px @{white}, 0 0 8px @{border-width}px @{gray}";
+     @shadow-rule: ~"0 0 4px 1px @{white},0 0 0 @{border-width}px @{white}, 0 0 8px @{border-width}px @{gray}";
     .box-shadow(@shadow-rule);
 }
 
@@ -162,6 +168,9 @@ header{
 
     #gallery{
         padding-top:@gridGutterWidth1200;
+        .postcard{
+            height:@pcHeight;
+        }
         .postcard-image{
             padding:12px;
             .thumb{
@@ -251,11 +260,12 @@ footer{
                 margin-bottom:@gridGutterWidth1200;
             }
             .postcard{
+                height:@pcHeight1200;
                 margin-bottom:@gridGutterWidth1200;
                 .postcard-image{
                     padding:15px;
                     .thumb{
-                        .postcard-border(15);
+                        .postcard-border(12);
                     }
                 }  
             }
@@ -276,6 +286,7 @@ footer{
                 margin-bottom:@gridGutterWidth768;
             }
             .postcard{
+                height:@pcHeight768;
                 margin-bottom:@gridGutterWidth768;
                 .postcard-image{
                     padding:10px;
@@ -303,6 +314,7 @@ footer{
                 text-align:center;
             }
             .postcard{
+                height:auto;
                 margin-bottom:@gridGutterWidth;
                 .postcard-image{
                     padding:15px;

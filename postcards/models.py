@@ -51,11 +51,17 @@ class Postcard(ModelBase,
     frame_delay = models.IntegerField(default=300)
 
     @property
-    def cover_photo(self):
+    def first_photo_model(self):
         if self.postcardcontent_set.count():
-            photo = self.postcardcontent_set.all()[0].content.file
-            if photo:
-                return get_thumbnail(photo, '640', quality=75)
+            content = self.postcardcontent_set.order_by('id')[0].content
+            return content
+
+        return None
+
+    @property
+    def cover_photo(self):
+        if self.first_photo_model and self.first_photo_model.file:
+            return get_thumbnail(self.first_photo_model.file, '640', quality=75)
 
         return None
             
@@ -71,8 +77,11 @@ class Postcard(ModelBase,
     def authors(self):
         authors = [self.author]
         if self.postcardcontent_set.count():
-            for p in self.postcardcontent_set:
-                authors.append(p.author)
+            for p in self.postcardcontent_set.all():
+                if not p.author in authors:
+                    authors.append(p.author)
+
+        return authors
 
     def api_serialize(self, request):
         d = {}
@@ -88,6 +97,7 @@ class Postcard(ModelBase,
         d['frame_delay'] = self.frame_delay
         d['facebook_likes'] = self.facebook_likes
         d['photos'] = reverse('postcard_photo_api', kwargs={'postcard_id':self.id})
+        d['authors'] = map(lambda a: a.username,  self.authors)
 
         return d
 
@@ -98,25 +108,40 @@ class Postcard(ModelBase,
 
         return d
 
+    def pre_save(self):
+        # If it is marked as COMPLETE, it needs to be processed, double check
+        # that it is still COMPLETE
+        if (self.content_state == LocastContent.STATE_INCOMPLETE or \
+            self.content_state == LocastContent.STATE_COMPLETE):
+
+            # Check that there is at least one photo
+            if self.first_photo_model and self.first_photo_model.file:
+                self.content_state = LocastContent.STATE_COMPLETE            
+
     def process(self, verbose=False):
-        if self.postcardcontent_set.count() and self.content_state == LocastContent.STATE_COMPLETE:
+        if self.first_photo_model.file and self.content_state == LocastContent.STATE_COMPLETE:
             self.content_state = LocastContent.STATE_PROCESSING
             self.save()
 
-            if self.animated_render:
-                self.animated_render.delete()
-
+            if verbose: print 'creating animated render...'
             self.create_animated_render(verbose=verbose)
+
             self.content_state = LocastContent.STATE_FINISHED
+            if verbose: print 'finished processing.'
             self.save()
 
     def create_animated_render(self, verbose=False):
-        filename = 'animated_%s.gif' % self.id
-        self.animated_render.save(filename, ContentFile(''), False)
-        images_to_gif_args = ['lcvideo_images_to_gif', unicode(self.frame_delay), self.animated_render.path]
 
-        photos = self.postcardcontent_set.all()
-        if self.frame_delay < 0:
+        # create a new file. Otherwise, it will be overwritten
+        if not self.animated_render:
+            filename = 'animated_%s.gif' % self.id
+            self.animated_render.save(filename, ContentFile(''), False)
+
+        actual_delay = int(self.frame_delay / 10)
+        images_to_gif_args = ['lcvideo_images_to_gif', unicode(actual_delay), self.animated_render.path]
+
+        photos = self.postcardcontent_set.order_by('created')
+        if actual_delay < 0:
             photos.reverse()
 
         for i in photos:
@@ -147,8 +172,7 @@ class Postcard(ModelBase,
 class PostcardContent(modelbases.LocastContent,
         interfaces.UUID,
         interfaces.Authorable,
-        interfaces.Locatable,
-        interfaces.Titled):
+        interfaces.Locatable):
 
     objects = models.Manager()
 
@@ -166,16 +190,20 @@ class Photo(PostcardContent,
         return ('postcard_photo_single_api', [str(self.postcard.id), str(self.id)])
 
     def __unicode__(self):
-        return u'%s (id: %s, postcard: %s)' % (self.title, str(self.id), self.postcard.title)
+        return u'id: %s, postcard: %s' % (str(self.id), self.postcard.id)
 
-    def post_save(self):
-        # If it is marked as FINISHED or INCOMPLETE, it needs to be processed, so set it to complete
-        if self.postcard and \
-            (self.postcard.content_state == LocastContent.STATE_FINISHED \
-            or self.postcard.content_state == LocastContent.STATE_INCOMPLETE):
+    @property
+    def medium_file(self):
+        return get_thumbnail(self.file, '320', quality=75)
 
-            self.postcard.content_state = LocastContent.STATE_COMPLETE            
-            self.postcard.save()
+    def content_api_serialize(self, request=None):
+        d = {}
+        if self.file:
+            d['resources'] = {}
+            d['resources']['primary'] = self.serialize_resource(self.file.url)
+            d['resources']['medium'] = self.serialize_resource(self.medium_file.url)
+
+        return d
 
 
 class PostcardUserManager(managers.LocastUserManager): pass
@@ -216,21 +244,12 @@ class PostcardUser(modelbases.LocastUser):
 class PostcardUserProfile(ModelBase):
     user = models.OneToOneField(PostcardUser)
 
-#    user_image = models.ImageField(upload_to='user_images/%Y/%m/', null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
     personal_url = models.URLField(null=True, blank=True)
     hometown = models.CharField(max_length=128, null=True, blank=True)
 
-#    @property
-#    def user_image_small(self):
-#        if self.user_image:
-#            return get_thumbnail(self.user_image, '150', quality=75)
-
     def api_serialize(self, request):
         d = {}
-#        if self.user_image:
-#            d['user_image'] = self.user_image.url
-#            d['user_image_small'] = self.user_image_small.url
 
         if self.bio:
             d['bio'] = self.bio
@@ -242,4 +261,3 @@ class PostcardUserProfile(ModelBase):
             d['hometown'] = self.hometown
 
         return d
-

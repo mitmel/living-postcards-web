@@ -17,7 +17,7 @@ class PostcardAPIForm(forms.ModelForm):
 class PhotoAPIForm(forms.ModelForm):
     class Meta: 
         model = models.Photo
-        fields = ('uuid', 'author', 'title', 'description', 'postcard')
+        fields = ('uuid', 'author', 'postcard')
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(label=_('Email'))

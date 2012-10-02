@@ -28,7 +28,9 @@
         </div>    
         <div class="details span2">
             <h3 class="title"><%= postcard.title %></h3>
-            <h4 class="author"><%= postcard.author.display_name %></h4>
+            <% _.each(postcard.authors, function(author) { %>
+                <h4 class="author"><%= author %></h4>
+            <% }); %>
             <div class="description">
                 <p><%= postcard.description %></p>
             </div>

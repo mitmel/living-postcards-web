@@ -3,6 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from locast.api import *
 from locast.api import rest, qstranslate, exceptions
 from locast.auth.decorators import optional_http_auth, require_http_auth
+from locast.models.modelbases import LocastContent
 
 from postcards import forms, models
 
@@ -49,7 +50,8 @@ class PostcardAPI(rest.ResourceView):
 
         # multiple postcards
         else:
-            base_query = models.Postcard.get_privacy_q(request)
+            base_query = models.Postcard.get_privacy_q(request) & \
+               Q(content_state=4) 
             q = qstranslate.QueryTranslator(models.Postcard, ruleset, base_query)
             query = request.GET.copy()
             objs = total = pg = None
@@ -72,6 +74,33 @@ class PostcardAPI(rest.ResourceView):
         # models.UserActivity.objects.create_activity(request.user, cast, 'created')
 
         return APIResponseCreated(content=api_serialize(postcard, request), location=postcard.get_api_uri())
+
+    @require_http_auth
+    def put(request, postcard_id = None):
+        if not postcard_id:
+            pass
+
+        postcard = get_object(models.Postcard, postcard_id)
+
+        if not postcard.allowed_edit(request.user):
+            raise exceptions.APIForbidden
+
+        postcard = postcard_from_post(request, postcard)
+        postcard.save()
+
+        return APIResponseOK(content=api_serialize(postcard, request))
+
+    @require_http_auth
+    def delete(request, postcard_id):
+
+        postcard = get_object(models.Postcard, postcard_id)
+
+        if not postcard.allowed_edit(request.user):
+            raise exceptions.APIForbidden
+
+        postcard.delete()
+
+        return APIResponseOK(content='success')
 
     @optional_http_auth
     def get_photo(request, postcard_id, photo_id = None):
@@ -107,7 +136,16 @@ class PostcardAPI(rest.ResourceView):
             if not mime_type:
                 raise exceptions.APIBadRequest('Invalid file type!')
 
-            photo.create_file_from_data(request.raw_post_data, mime_type)
+            try:
+                photo.create_file_from_data(request.raw_post_data, mime_type)
+            except LocastContent.InvalidMimeType:
+                raise exceptions.APIBadRequest('Invalid file type!')
+
+            # Set the postcard as complete because it needs to be reprocessed
+            postcard = get_object(models.Postcard, postcard_id)
+            postcard.content_state = LocastContent.STATE_COMPLETE
+            postcard.save()
+
             return APIResponseOK(content=api_serialize(photo.contentmodel))
 
         # If there is not, posting a new photo object
