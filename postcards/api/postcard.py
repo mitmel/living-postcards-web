@@ -1,7 +1,6 @@
 from django.views.decorators.csrf import csrf_exempt
 
-from locast.api import *
-from locast.api import rest, qstranslate, exceptions
+from locast.api import rest, qstranslate, exceptions, get_object, api_serialize, paginate, APIResponseOK, APIResponseCreated, get_param, get_polygon_bounds_query, geojson_serialize, get_json, Q, form_validate, simplejson
 from locast.auth.decorators import optional_http_auth, require_http_auth
 from locast.models.modelbases import LocastContent
 
@@ -128,7 +127,7 @@ class PostcardAPI(rest.ResourceView):
         # If there is a photo_id, posting raw photo data to a photo
         if photo_id:
             photo = get_object(models.Photo, id = photo_id)
-            postcard = check_postcard_photo(postcard_id, photo_id)
+            check_postcard_photo(postcard_id, photo_id)
 
             content_type = get_param(request.META, 'CONTENT_TYPE')
             mime_type = content_type.split(';')[0]
