@@ -221,7 +221,19 @@ def postcard_from_post(request, postcard = None):
     if 'privacy' in data: 
         data['privacy'] = models.Postcard.get_privacy_value(data['privacy'])
 
-    postcard = form_validate(forms.PostcardAPIForm, data, instance = postcard)
+    try:
+        postcard = form_validate(forms.PostcardAPIForm, data, instance = postcard)
+    # If the error is a UUID conflict, return the uri to the client
+    except exceptions.APIBadRequest, e:
+        error = simplejson.loads(e.message)
+        if 'uuid' in error:
+            # uuid errors almost always indicate that there's a conflict. find it
+            conflicting = models.Postcard.objects.get(uuid = data['uuid'])
+            if conflicting:
+                error['uri'] = conflicting.get_api_uri()
+            raise exceptions.APIConflict(simplejson.dumps(error))
+        else:
+            raise e
 
     if location:
         postcard.set_location(location[0], location[1])

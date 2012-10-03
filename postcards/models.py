@@ -123,7 +123,6 @@ class Postcard(ModelBase,
         return d
 
     def pre_save(self):
-        p = Postcard.objects.get(id=self.id)
 
         # only incomplete if there is no first photo.
         if not self.first_photo_model:
@@ -132,14 +131,20 @@ class Postcard(ModelBase,
         elif not self.first_photo_model.file:
             self.content_state = LocastContent.STATE_INCOMPLETE
 
-        else:
+        # Check that this isn't a completely new postcard
+        elif self.id:
             # Frame delay has changed
-            if self.frame_delay != p.frame_delay:
-                self.content_state = LocastContent.STATE_COMPLETE
+            try:
+                p = Postcard.objects.get(id=self.id)
+                if self.frame_delay != p.frame_delay:
+                    self.content_state = LocastContent.STATE_COMPLETE
 
-            # If a photo has been added since this was last processed, set it back to complete
-            if not self.processed_time or (self.photoset_update_time and (self.processed_time < self.photoset_update_time)):
-                self.content_state = LocastContent.STATE_COMPLETE
+                # If a photo has been added since this was last processed, set it back to complete
+                if not self.processed_time or (self.photoset_update_time and (self.processed_time < self.photoset_update_time)):
+                    self.content_state = LocastContent.STATE_COMPLETE
+
+            except Postcard.DoesNotExist:
+                pass
 
     def process(self, verbose=False):
         self.content_state = LocastContent.STATE_PROCESSING
@@ -265,7 +270,6 @@ class Photo(PostcardContent,
             postcard.photoset_update_time = datetime.now()
 
         postcard.save()
-
 
     def post_save(self):
         # make sure that postcard is saved to recheck content_state
