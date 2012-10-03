@@ -128,7 +128,7 @@ class PostcardAPI(rest.ResourceView):
         # If there is a photo_id, posting raw photo data to a photo
         if photo_id:
             photo = get_object(models.Photo, id = photo_id)
-            check_postcard_photo(postcard_id, photo_id)
+            postcard = check_postcard_photo(postcard_id, photo_id)
 
             content_type = get_param(request.META, 'CONTENT_TYPE')
             mime_type = content_type.split(';')[0]
@@ -140,11 +140,6 @@ class PostcardAPI(rest.ResourceView):
                 photo.create_file_from_data(request.raw_post_data, mime_type)
             except LocastContent.InvalidMimeType:
                 raise exceptions.APIBadRequest('Invalid file type!')
-
-            # Set the postcard as complete because it needs to be reprocessed
-            postcard = get_object(models.Postcard, postcard_id)
-            postcard.content_state = LocastContent.STATE_COMPLETE
-            postcard.save()
 
             return APIResponseOK(content=api_serialize(photo.contentmodel))
 
@@ -166,6 +161,7 @@ def check_postcard_photo(postcard_id, photo_id):
         postcard.postcardcontent_set.get(id=photo_id)
     except models.PostcardContent.DoesNotExist:
         raise exceptions.APIBadRequest('Photo is not part of this postcard')
+
     return postcard
 
 
