@@ -147,12 +147,17 @@ class Postcard(ModelBase,
 
         if verbose: print 'creating animated render...'
         self.create_animated_render(verbose=verbose)
+        if verbose: print 'creating video render...'
         self.create_video_render(verbose=verbose)
 
         if verbose: print 'finished processing.'
-        self.content_state = LocastContent.STATE_FINISHED
-        self.processed_time = datetime.now()
-        self.save()
+        try:
+            self.content_state = LocastContent.STATE_FINISHED
+            self.processed_time = datetime.now()
+            self.save()
+            if verbose: print 'saved.'
+        except Exception as e:
+            print e
 
     def create_animated_render(self, verbose=False):
 
@@ -179,8 +184,30 @@ class Postcard(ModelBase,
         subprocess.call(images_to_gif_args, stdout=stdout)
 
     def create_video_render(self, verbose=False):
-        # TODO: do somethin
-        pass
+        
+        # create a new file. Otherwise, it will be overwritten
+        if not self.video_render:
+            filename = 'video_render_%05d.3gp' % self.id
+            self.video_render.save(filename, ContentFile(''), False)
+
+        # frames per second
+        fps = 1000/int(self.frame_delay)
+        images_to_video_args = ['lcvideo_images_to_video', unicode(fps), self.video_render.path]
+
+        photos = self.postcardcontent_set.order_by('created')
+        if fps < 0:
+            photos.reverse()
+
+        for i in photos:
+            if i.content.file:
+                images_to_video_args.append(i.content.file.path)
+
+        stdout = None
+        if verbose:
+            stdout = subprocess.PIPE
+
+        subprocess.call(images_to_video_args, stdout=stdout)
+
 
     def update_facebook_likes(self):
         # https://graph.facebook.com/?id=http://mel-pydev.mit.edu/avea/?_escaped_fragment_=/postcard/1/
