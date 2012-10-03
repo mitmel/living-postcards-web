@@ -145,19 +145,18 @@ class Postcard(ModelBase,
         self.content_state = LocastContent.STATE_PROCESSING
         self.save()
 
-        if verbose: print 'creating animated render...'
-        self.create_animated_render(verbose=verbose)
-        if verbose: print 'creating video render...'
-        self.create_video_render(verbose=verbose)
-
-        if verbose: print 'finished processing.'
         try:
+            if verbose: print 'creating animated render...'
+            self.create_animated_render(verbose=verbose)
+            if verbose: print 'creating video render...'
+            self.create_video_render(verbose=verbose)
+
             self.content_state = LocastContent.STATE_FINISHED
             self.processed_time = datetime.now()
             self.save()
-            if verbose: print 'saved.'
+            if verbose: print 'finished processing.'
         except Exception as e:
-            print e
+            print "Error processing video: %s" % e
 
     def create_animated_render(self, verbose=False):
 

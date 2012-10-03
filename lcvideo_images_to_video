@@ -30,7 +30,6 @@ done
 
 # with ffmpeg, the output framerate is fixed but the input framerate controls
 # how quickly the frames are animated.
-echo ffmpeg -y -r ${fps} -i ${dir}/"image_%03d".jpg -s ${output_size} -r ${output_framerate} -vcodec ${output_codec} ${output} >> /tmp/ffmpeg_output
-ffmpeg -y -r ${fps} -i ${dir}/"image_%03d".jpg -s ${output_size} -r ${output_framerate} -vcodec ${output_codec} ${output} 2>&1 > /tmp/ffmpeg_output
+ffmpeg -y -r ${fps} -i ${dir}/"image_%03d".jpg -s ${output_size} -r ${output_framerate} -vcodec ${output_codec} ${output}
 
 rm -rf ${dir}
