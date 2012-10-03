@@ -138,7 +138,7 @@ class Postcard(ModelBase,
                 self.content_state = LocastContent.STATE_COMPLETE
 
             # If a photo has been added since this was last processed, set it back to complete
-            if not self.processed_time or (self.processed_time < self.photoset_update_time):
+            if not self.processed_time or (self.photoset_update_time and (self.processed_time < self.photoset_update_time)):
                 self.content_state = LocastContent.STATE_COMPLETE
 
     def process(self, verbose=False):
@@ -262,6 +262,8 @@ class Photo(PostcardContent,
             if (self.file and not p.file) or (p.file and not self.file):
                 # New file
                 postcard.photoset_update_time = datetime.now()
+        elif not postcard.photoset_update_time:
+            postcard.photoset_update_time = datetime.now()
 
         postcard.save()
 
