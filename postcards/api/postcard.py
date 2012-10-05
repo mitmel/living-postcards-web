@@ -3,6 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from locast.api import rest, qstranslate, exceptions, get_object, api_serialize, paginate, APIResponseOK, APIResponseCreated, get_param, get_polygon_bounds_query, geojson_serialize, get_json, Q, form_validate, simplejson
 from locast.auth.decorators import optional_http_auth, require_http_auth
 from locast.models.modelbases import LocastContent
+from django.http import HttpResponseNotAllowed
 
 from postcards import forms, models
 
@@ -120,6 +121,23 @@ class PostcardAPI(rest.ResourceView):
                 photo_dicts.append(api_serialize(p, request))
 
         return APIResponseOK(content=photo_dicts)
+
+    @require_http_auth
+    def put_photo(request, postcard_id, photo_id = None):
+        if not photo_id:
+            return HttpResponseNotAllowed(['GET', 'POST', 'DELETE', 'HEAD'])
+
+        photo = get_object(models.Photo, photo_id)
+        check_postcard_photo(postcard_id, photo_id)
+
+        if not photo.allowed_edit(request.user):
+            raise exceptions.APIForbidden
+
+        photo = photo_from_post(request, postcard_id, photo)
+        photo.save()
+
+        return APIResponseOK(content=api_serialize(photo, request))
+
 
     @require_http_auth
     def post_photo(request, postcard_id, photo_id = None):
