@@ -1,4 +1,3 @@
-from datetime import datetime
 import settings
 import subprocess
 import urllib2
@@ -11,6 +10,7 @@ from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.utils import simplejson as json
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from locast.api import datetostr
@@ -157,7 +157,7 @@ class Postcard(ModelBase,
             self.create_video_render(verbose=verbose)
 
             self.content_state = LocastContent.STATE_FINISHED
-            self.processed_time = datetime.now()
+            self.processed_time = timezone.now()
             self.save()
             if verbose: print 'finished processing.'
         except Exception as e:
@@ -259,15 +259,15 @@ class Photo(PostcardContent,
         postcard = self.postcard
         if not self.id and self.file:
             # New file
-            postcard.photoset_update_time = datetime.now()
+            postcard.photoset_update_time = timezone.now()
 
         elif self.id:
             p = Photo.objects.get(id=self.id)
             if (self.file and not p.file) or (p.file and not self.file):
                 # New file
-                postcard.photoset_update_time = datetime.now()
+                postcard.photoset_update_time = timezone.now()
         elif not postcard.photoset_update_time:
-            postcard.photoset_update_time = datetime.now()
+            postcard.photoset_update_time = timezone.now()
 
         postcard.save()
 
@@ -288,7 +288,7 @@ class Photo(PostcardContent,
 def photo_deleted(sender, **kwargs):
     # Update the photoset update time, which will force a reprocess
     p = kwargs['instance'].postcard
-    p.photoset_update_time = datetime.now()
+    p.photoset_update_time = timezone.now()
     p.save()
 
 class PostcardUserManager(managers.LocastUserManager): pass
