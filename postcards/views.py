@@ -27,6 +27,9 @@ def home(request):
         postcard = get_object_or_404(model, id=id)
         og_title = postcard.title
         og_image = postcard.animated_render.url
+        og_author = postcard.author.display_name
+        og_description = postcard.description
+
         return render_to_response('content_page.django.html', locals(), context_instance = RequestContext(request))
 
     return render_to_response('home.django.html', locals(), context_instance = RequestContext(request))

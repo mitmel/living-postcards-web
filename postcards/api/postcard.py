@@ -281,7 +281,20 @@ def photo_from_post(request, postcard_id, photo = None):
     if 'modified' in data: del data['modified']
     if 'created' in data: del data['created']
 
-    photo = form_validate(forms.PhotoAPIForm, data, instance = photo)
+    try:
+        photo = form_validate(forms.PhotoAPIForm, data, instance = photo)
+    # If the error is a UUID conflict, return the uri to the client
+    except exceptions.APIBadRequest, e:
+        error = simplejson.loads(e.message)
+        if 'uuid' in error:
+            # uuid errors almost always indicate that there's a conflict. find it
+            conflicting = models.Photo.objects.get(uuid = data['uuid'])
+            if conflicting:
+                error['uri'] = conflicting.get_api_uri()
+            raise exceptions.APIConflict(simplejson.dumps(error))
+        else:
+            raise e
+
 
     if location:
         photo.set_location(location[0], location[1])

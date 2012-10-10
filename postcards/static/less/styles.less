@@ -154,7 +154,9 @@ header{
             color:@paleBlue;
             text-transform:Capitalize;
             color:darken(@paleBlue, 20%);
-            
+            .seperator{
+                text-transform:lowercase;
+            }
         }
         .description{
              color:@paleBlue;
@@ -216,11 +218,21 @@ header{
         .postcard-image{ 
             .transition(width 0.2s ease);
             padding:15px;
+            margin-bottom:@baseLineHeight;
             img{
                 width:100%;
                 .postcard-border(15);               
             }
         }
+        .map{
+            border-box:content;
+            margin-top:@baseLineHeight*2;
+            img{
+                width:100%; 
+                .postcard-border(15); 
+            }
+        }
+        
     } 
 }
 
