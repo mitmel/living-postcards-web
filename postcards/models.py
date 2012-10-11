@@ -202,9 +202,16 @@ class Postcard(ModelBase,
         if fps < 0:
             photos.reverse()
 
+        first = None
         for i in photos:
             if i.content.file:
                 images_to_video_args.append(i.content.file.path)
+                if not first:
+                    first = i.content.file.path
+        # this is done in order to duplicate the first frame. When rendering the video, the first frame
+        # is sometimes cut short.
+        if first:
+            images_to_video_args.append(first)
 
         stdout = None
         if verbose:
