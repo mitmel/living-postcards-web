@@ -19,6 +19,4 @@ class PhotoAdmin(MapAdmin):
 
 admin.site.register(models.Postcard, PostcardAdmin)
 admin.site.register(models.Photo, PhotoAdmin)
-
 admin.site.register(models.PostcardUser, admin.ModelAdmin)
-

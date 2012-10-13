@@ -1,11 +1,12 @@
+from django.http import HttpResponseNotAllowed
 from django.views.decorators.csrf import csrf_exempt
 
 from locast.api import rest, qstranslate, exceptions, get_object, api_serialize, paginate, APIResponseOK, APIResponseCreated, get_param, get_polygon_bounds_query, geojson_serialize, get_json, Q, form_validate, simplejson
+from locast.api.decorators import cache_api_response
 from locast.auth.decorators import optional_http_auth, require_http_auth
 from locast.models.modelbases import LocastContent
-from django.http import HttpResponseNotAllowed
 
-from postcards import forms, models
+from postcards import forms, models, cache_controller
 
 ruleset = {
     # Authorable
@@ -35,6 +36,7 @@ ruleset = {
 @csrf_exempt
 class PostcardAPI(rest.ResourceView):
 
+    @cache_api_response(cache_group = cache_controller.POSTCARD_GET_GROUP)
     @optional_http_auth
     def get(request, postcard_id=None, coll_id=None, format='.json'):
 
