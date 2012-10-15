@@ -127,7 +127,7 @@ class PostcardAPI(rest.ResourceView):
     @require_http_auth
     def put_photo(request, postcard_id, photo_id = None):
         if not photo_id:
-            return HttpResponseNotAllowed(['GET', 'POST', 'DELETE', 'HEAD'])
+            return HttpResponseNotAllowed(['GET', 'POST', 'HEAD'])
 
         photo = get_object(models.Photo, photo_id)
         check_postcard_photo(postcard_id, photo_id)
@@ -168,6 +168,23 @@ class PostcardAPI(rest.ResourceView):
             photo.save()
 
             return APIResponseCreated(content=api_serialize(photo.contentmodel, request), location=photo.get_api_uri())
+
+    @require_http_auth
+    def delete_photo(request, postcard_id, photo_id = None):
+        # currently can't delete all photos at once
+        if not photo_id:
+            return HttpResponseNotAllowed(['GET', 'POST', 'HEAD'])
+
+        photo = get_object(models.Photo, id = photo_id)
+        check_postcard_photo(postcard_id, photo_id)
+
+        if not photo.allowed_edit(request.user):
+            raise exceptions.APIForbidden
+
+        photo.delete()
+
+        return APIResponseOK(content='success')
+
 
     @optional_http_auth
     def get_authors(request, postcard_id):
