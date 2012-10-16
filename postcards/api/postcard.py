@@ -29,7 +29,8 @@ ruleset = {
     # Favoritable
     'favorited_by'  :    { 'type': 'int' },
 
-    # 
+    # postcard model
+    'updated'     :    { 'type': 'datetime', 'alias': 'photoset_update_time' },
     'popularity'  :    { 'type': 'int', 'alias': 'facebook_likes' },
 }
 

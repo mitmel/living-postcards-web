@@ -46,7 +46,7 @@ var PostcardGallery = Backbone.View.extend({
 
     id: 'gallery',
 
-    orderby: '-created',
+    orderby: '-updated',
 
     page: 1,
 
@@ -77,9 +77,6 @@ var PostcardGallery = Backbone.View.extend({
         else { 
             _this.pages_left = true;
         }
-    },
-
-    _bind_click_handlers: function() {
     },
 
     // this will fire the 'reset' handler of gallery
@@ -238,7 +235,7 @@ var AppRouter = Backbone.Router.extend({
         $('#content').html(gallery.el);
         
         if ( !app.postcardGallery ) {
-            $('#-created.gallery-sort').addClass('active');
+            $('#-updated.gallery-sort').addClass('active');
             app.postcardGallery = gallery;
         }
 
@@ -247,12 +244,18 @@ var AppRouter = Backbone.Router.extend({
         // Recent activated by default
         // on clicking a gallery sort link
         gallery.$el.find('.gallery-sort').click(function() {
-            var orderby = $(this).attr('id');
-            $('.gallery-sort').removeClass('active');
-            $(this).addClass('active');
-            gallery.orderby = orderby;
-            gallery.reload();
-            return false;
+
+            // if its not already active
+            if (!$(this).hasClass('active')) {
+                var orderby = $(this).attr('id');
+                $('.gallery-sort').removeClass('active');
+                $(this).addClass('active');
+                gallery.orderby = orderby;
+
+                // reload the gallery after setting the new orderby
+                gallery.reload();
+                return false;
+            }
         }); 
 
         dispatcher.on('closeView', function() {

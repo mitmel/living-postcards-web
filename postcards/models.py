@@ -107,6 +107,9 @@ class Postcard(ModelBase,
         if self.video_render:
             resc['video_render'] = LocastContent.serialize_resource(self.video_render.url)
 
+        if self.photoset_update_time:
+            d['updated'] = datetostr(self.photoset_update_time)
+
         d['resources'] = resc
         d['frame_delay'] = self.frame_delay
         d['facebook_likes'] = self.facebook_likes
