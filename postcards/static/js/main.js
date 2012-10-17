@@ -17,9 +17,9 @@ var PostcardCollection = Backbone.Collection.extend({
 
     parse: function(response) {
         // remove items without an animated_render
-        // TODO: maybe they should have a place holder?
         //
         // NOTE: they currently don't get sent from the API
+        // maybe they should have a place holder?
         return _.reject(response, function(postcard) {
             return !(_.has(postcard.resources, 'animated_render'));
         });
@@ -64,7 +64,7 @@ var PostcardGallery = Backbone.View.extend({
                 _this.postcardListView.$el.remove(); 
             }
             _this.postcardListView = new PostcardListView({model:_this.model})
-            _this.$el.append(_this.postcardListView.render().el);
+            _this.$el.find('#list-container').html(_this.postcardListView.render().el);
         });
     },
 
@@ -79,8 +79,8 @@ var PostcardGallery = Backbone.View.extend({
         }
     },
 
-    // this will fire the 'reset' handler of gallery
-    reload: function() {
+    // this will fire the 'reset' handler of the collection
+    reload: function(callback) {
         var _this = this;
         _this.page = 1;
         _xhr = _this.model.fetch({
@@ -91,17 +91,15 @@ var PostcardGallery = Backbone.View.extend({
             },
             success: function() {
                 _this._check_if_pages_left(_xhr);
+                if ( callback ) { callback(); }
             }
         });
     },
 
     // fires add event handler in postcardlistview
-    load_more: function () {
+    load_more: function (callback) {
         var _this = this;
         if ( !_this.pages_left ) { return; }
-
-        // TODO: add some loading indicator
-        //_this.postcardListView.$el.append('<div>loading!</div>');
 
         _this.page = _this.page + 1;
 
@@ -121,6 +119,7 @@ var PostcardGallery = Backbone.View.extend({
             },
             success: function() {
                 _this._check_if_pages_left(_xhr);
+                if ( callback ) { callback(); }
             },
             add: true,
         });
@@ -132,7 +131,6 @@ var PostcardGallery = Backbone.View.extend({
 
         return _this;
     },
-
 
 });
 
@@ -183,6 +181,7 @@ var MapView = Backbone.View.extend({
         this.$el.html(html);
         return this;
     }
+
 });
 
 /* APP */
@@ -216,44 +215,62 @@ var AppRouter = Backbone.Router.extend({
         $('#content').html(html); 
     },
 
-
     gallery: function () {
         dispatcher.trigger('closeView');
         var gallery = null;
+        var new_gallery = false;
 
+        // If there isn't a gallery view yet, create a new collection
+        // and render the gallery
         if ( !app.postcardGallery ) {
             app.postcardCollection = new PostcardCollection();
             gallery = new PostcardGallery({'model': app.postcardCollection});
             gallery.render();
-            gallery.reload();
+
+            // TODO: RELOAD HERE
+            gallery.reload(function() {
+                // fade in the gallery
+                gallery.$el.fadeIn();
+            });
+
+            app.postcardGallery = gallery;
+            new_gallery = true;
         }
         else {
             gallery = app.postcardGallery;
         }
-
-        // rerender without refetching
-        $('#content').html(gallery.el);
         
-        if ( !app.postcardGallery ) {
+        //TODO: FADE IN HERE
+        // put the content back in
+        gallery.$el.hide();
+        $('#content').html(gallery.el);
+        if ( new_gallery ) {
             $('#-updated.gallery-sort').addClass('active');
-            app.postcardGallery = gallery;
         }
+        gallery.$el.fadeIn();
 
+        // enable infinite scrolling
         enable_infinite_scroll();
 
         // Recent activated by default
         // on clicking a gallery sort link
         gallery.$el.find('.gallery-sort').click(function() {
+            var list_div = gallery.$el.find('#list-container');
 
-            // if its not already active
+            // only reload if its not already active
             if (!$(this).hasClass('active')) {
                 var orderby = $(this).attr('id');
                 $('.gallery-sort').removeClass('active');
                 $(this).addClass('active');
                 gallery.orderby = orderby;
 
+                // TODO: RELOAD HERE
                 // reload the gallery after setting the new orderby
-                gallery.reload();
+                list_div.fadeOut(function() {
+                    gallery.reload(function() { 
+                        list_div.fadeIn(); 
+                    });
+                });
                 return false;
             }
         }); 

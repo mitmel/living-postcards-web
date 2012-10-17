@@ -6,15 +6,15 @@
 {% get_flatpages '/competition/' as competition_page %}
 
 <script type="text/template" id="about-page-templ">
-    {% for page in about_page %}{{ page.content }}{% endfor %}
+    {% for page in about_page %}{{ page.content|safe }}{% endfor %}
 </script>
 
 <script type="text/template" id="competition-page-templ">
-    {% for page in competition_page %}{{ page.content }}{% endfor %}
+    {% for page in competition_page %}{{ page.content|safe }}{% endfor %}
 </script>
 
 <script type="text/template" id="home-page-templ">
-    {% for page in home_page %}{{ page.content }}{% endfor %}
+    {% for page in home_page %}{{ page.content|safe }}{% endfor %}
 </script>
 
 {# backbone view templates #}
@@ -24,6 +24,7 @@
             <button class="btn gallery-sort" id="-popularity"> <i class="icon-star"></i> Popular</button>
             <!--<button class="btn disabled"> <i class="icon-map-marker"></i> Map Coming soon!</button>-->
     </div>
+    <div id="list-container"></div>
 </script>
 
 <script type="text/template" id="postcard-list-item-templ">
@@ -31,6 +32,8 @@
         <div class="postcard-image">
             <img class="thumb still" src="<%= postcard.resources.cover_photo.url %>">
             <img class="thumb gif" src="<%= postcard.resources.animated_render.url %>">
+            <p class="date"><i class="icon-time icon-white"></i><%= postcard.updated %></p>
+            <p class="likes"><i class="icon-heart icon-white"></i><%= postcard.facebook_likes %></p>
         </div>
         <h4 class="title"><%= postcard.title %></h4>
         <h5 class="author"><%= postcard.author.display_name %>
@@ -48,7 +51,7 @@
         <div class="postcard-image clearfix offset1 span8">
             <img class="gif" src="<%= postcard.resources.animated_render.url %>"></img>
 
-            <% if (postcard.location) { %>
+            <% if (postcard.location != undefined ) { %>
             <div class="map">
                 <img src="http://maps.googleapis.com/maps/api/staticmap?center=<%= postcard.location[1] %>,<%= postcard.location[0] %>&zoom=12&size=900x150&scale=1&sensor=false&style=feature:road%7Celement:labels%7Cvisibility:off&style=feature:water%7Celement:geometry%7Csaturation:-45%7Clightness:20%7Chue:0x91A8AD&style=feature:road.local%7Celement:geometry%7Clightness:-20%7Chue:0x000000%7Csaturation:-100&style=feature:road%7Celement:geometry%7Chue:0x000000%7Csaturation:-100&style=feature:landscape%7Celement:geometry%7Chue:0x84A8B0%7Clightness:50%7Csaturation:-100&style=feature:poi%7Celement:geometry%7Chue:0x68B3B3%7Clightness:10%7Csaturation:-100&markers=<%= postcard.location[1] %>,<%= postcard.location[0] %>" />
             </div>
