@@ -35,15 +35,15 @@
 
 // Components: common
 @import "sprites.less";
-@import "dropdowns.less";
-@import "wells.less";
-@import "component-animations.less";
-@import "close.less";
+//@import "dropdowns.less";
+//@import "wells.less";
+//@import "component-animations.less";
+//@import "close.less";
 
 // Components: Buttons & Alerts
 @import "buttons.less";
 @import "button-groups.less";
-@import "alerts.less"; // Note: alerts share common CSS with buttons and thus have styles in buttons.less
+//@import "alerts.less"; // Note: alerts share common CSS with buttons and thus have styles in buttons.less
 
 /* Base Styles for Living Postcards */
 
@@ -126,6 +126,46 @@ header{
 }
 
 #content{ 
+    .flatpage{
+        .postcard-border(10);
+        background-color:#fff;
+        padding:@baseLineHeight;
+        margin:@baseLineHeight*4 auto;
+        max-width:600px;
+        h1, h2, h3{
+            color:@accentRed;
+            line-height:1.2;
+            border-bottom:1px solid @accentRed;
+        }
+        &#home{
+            .box-shadow(~"none");
+            background-color:transparent;
+            iframe{
+                .postcard-border(15);
+                margin-bottom:@baseLineHeight*2;
+                width:100%;
+            }
+        }
+    }
+    #loading{
+        margin:@baseLineHeight*4 auto;
+        background-color:#fff;
+        .postcard-border(10);
+        padding:0 @baseLineHeight*.15;
+        color:@gray;
+        width:150px;
+        .loader{
+            position:relative;
+            top:5px;
+            left:5px;
+            float:left;
+            margin-right:@baseLineHeight;
+            display:block;
+            width:31px;
+            height:31px;
+            background-image:url('../img/loader.gif');
+        }
+    }
     #content-nav{
         float:right;
         margin-bottom:@gridGutterWidth1200;
@@ -159,7 +199,8 @@ header{
             }
         }
         .description{
-             color:@paleBlue;
+            color:darker(@paleBlue, 10%);
+            line-height:1.2; 
         }
         a:hover{
             text-decoration:none;
@@ -170,10 +211,12 @@ header{
 
     #gallery{
         padding-top:@gridGutterWidth1200;
+        min-height:800px;
         .postcard{
             height:@pcHeight;
         }
         .postcard-image{
+            position:relative;
             padding:12px;
             .thumb{
                 width:100%;
@@ -185,28 +228,38 @@ header{
                 
                 &.gif{
                     position:absolute;
-                    top:5%;
-                    left:5%;
-                    width:90%;
-                    opacity:0;
+                    top:2%;
+                    left:2%;
+                    width:95%;
                 }
                 &.still{
-                    opacity:1;
+                    visibility:none;
                 }
             }
             &:hover, &:active{
                 .thumb{
                     &.gif{
-                        top:2%;
+                        top:0;
                         left:0;
                         width:100%;
-                        opacity:1;
                     }
                     &.still{
-                        opacity:0;
                     }
-
                 }
+                .date, .likes{
+                    opacity:0;
+                }
+            }
+            .date, .likes{
+                position:absolute;
+                bottom:12px;
+                color:@white;
+            }
+            .date{
+                left:18px;
+            }
+            .likes{
+                right:24px;
             }
         }
     }

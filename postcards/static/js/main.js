@@ -64,7 +64,10 @@ var PostcardGallery = Backbone.View.extend({
                 _this.postcardListView.$el.remove(); 
             }
             _this.postcardListView = new PostcardListView({model:_this.model})
-            _this.$el.find('#list-container').html(_this.postcardListView.render().el);
+            lcont = _this.$el.find('#list-container')
+
+            // ease in the html with a fade
+            lcont.html(_this.postcardListView.render().el).fadeIn();
         });
     },
 
@@ -83,6 +86,7 @@ var PostcardGallery = Backbone.View.extend({
     reload: function(callback) {
         var _this = this;
         _this.page = 1;
+        show_loading();
         _xhr = _this.model.fetch({
             data: { 
                 orderby: _this.orderby,
@@ -91,6 +95,7 @@ var PostcardGallery = Backbone.View.extend({
             },
             success: function() {
                 _this._check_if_pages_left(_xhr);
+                hide_loading();
                 if ( callback ) { callback(); }
             }
         });
@@ -107,6 +112,7 @@ var PostcardGallery = Backbone.View.extend({
         // is loading
         disable_infinite_scroll();
 
+        show_loading();
         _xhr = _this.model.fetch({
             data: { 
                 orderby: _this.orderby,
@@ -119,6 +125,7 @@ var PostcardGallery = Backbone.View.extend({
             },
             success: function() {
                 _this._check_if_pages_left(_xhr);
+                hide_loading();
                 if ( callback ) { callback(); }
             },
             add: true,
@@ -141,7 +148,10 @@ var PostcardListView = Backbone.View.extend({
     initialize: function() {
         var _this = this;
         _this.model.on('add', function(postcard) {
-            _this.$el.append(new PostcardListItemView({model:postcard}).render().el);
+            item_view = new PostcardListItemView({model:postcard}).render().$el;
+
+            // ease in the append with a fade
+            item_view.hide().appendTo(_this.$el).fadeIn();
         });
     },
 
@@ -225,37 +235,32 @@ var AppRouter = Backbone.Router.extend({
         if ( !app.postcardGallery ) {
             app.postcardCollection = new PostcardCollection();
             gallery = new PostcardGallery({'model': app.postcardCollection});
-            gallery.render();
-
-            // TODO: RELOAD HERE
-            gallery.reload(function() {
-                // fade in the gallery
-                gallery.$el.fadeIn();
-            });
-
             app.postcardGallery = gallery;
+
+            gallery.render();
+            gallery.reload();
+
             new_gallery = true;
         }
         else {
             gallery = app.postcardGallery;
         }
         
-        //TODO: FADE IN HERE
-        // put the content back in
-        gallery.$el.hide();
-        $('#content').html(gallery.el);
+        // put the content back in, ease in with a fade
+        $('#content').hide().html(gallery.el).fadeIn();
+
+        enable_postcard_hover();
+
         if ( new_gallery ) {
             $('#-updated.gallery-sort').addClass('active');
         }
-        gallery.$el.fadeIn();
 
         // enable infinite scrolling
-        enable_infinite_scroll();
+        enable_infinite_scroll();       
 
         // Recent activated by default
         // on clicking a gallery sort link
         gallery.$el.find('.gallery-sort').click(function() {
-            var list_div = gallery.$el.find('#list-container');
 
             // only reload if its not already active
             if (!$(this).hasClass('active')) {
@@ -264,13 +269,12 @@ var AppRouter = Backbone.Router.extend({
                 $(this).addClass('active');
                 gallery.orderby = orderby;
 
-                // TODO: RELOAD HERE
                 // reload the gallery after setting the new orderby
+                var list_div = gallery.$el.find('#list-container');
                 list_div.fadeOut(function() {
-                    gallery.reload(function() { 
-                        list_div.fadeIn(); 
-                    });
+                    gallery.reload();
                 });
+
                 return false;
             }
         }); 
@@ -340,10 +344,33 @@ var app = null;
 
 /* HELPERS */
 
+function show_loading() {
+    app.postcardGallery.$el.append(_.template($('#loader-templ').html()));
+}
+
+function hide_loading() {
+    $('#loading').remove();
+}
+
+function enable_postcard_hover() {
+    $('#gallery .postcard .thumb').unbind('mouseenter').unbind('mouseleave');
+    $('#gallery .postcard .thumb').hover(function() {
+        var this_thumb = $(this);
+        this_thumb.attr('src', this_thumb.attr('data-gif-src')); 
+    },
+    function() {
+        var this_thumb = $(this);
+        this_thumb.attr('src', this_thumb.attr('data-still-src')); 
+    });
+}
+
 function enable_infinite_scroll() {
     $(window).scroll(function () { 
         if ($(window).scrollTop() >= $(document).height() - $(window).height() - 10) {
-            app.postcardGallery.load_more();
+            app.postcardGallery.load_more(function() {
+                //attach hover handler                
+                enable_postcard_hover(); 
+            });
         }
     });
 }

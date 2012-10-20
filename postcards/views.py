@@ -1,3 +1,6 @@
+import settings
+
+from django.contrib.flatpages.models import FlatPage
 from django.http import Http404
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
@@ -9,6 +12,18 @@ from postcards.models import Postcard
 
 def home(request):
     fragment = request.GET.get('_escaped_fragment_')
+
+    # Javascript template "flatpages"
+    locale = ''
+    # If the locale is same as the request language, just use default flatpage
+    if settings.LANGUAGE_CODE and not (request.LANGUAGE_CODE == settings.LANGUAGE_CODE):
+        # Otherwise, grab the one that is /url-{locale}/
+        locale = request.LANGUAGE_CODE
+
+    home_page = _get_js_flatpage('home', locale)
+    about_page = _get_js_flatpage('about', locale)
+    competition_page = _get_js_flatpage('competition', locale)
+
     if fragment:
         fragments = fragment.split('/');
         # splits like this: ''/postcard/id/''
@@ -45,3 +60,17 @@ def facebook_channel_html(request):
 
     response['Pragma'] = 'public'
     return response
+
+def _get_js_flatpage(url, locale):
+    content = ''
+    if locale:
+        locale = '-' + locale
+    try:
+        content = FlatPage.objects.get(url='/' + url + locale + '/').content
+    except FlatPage.DoesNotExist:
+        try:
+            content = FlatPage.objects.get(url='/' + url + '/').content
+        except FlatPage.DoesNotExist:
+            pass
+ 
+    return content
