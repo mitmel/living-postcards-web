@@ -159,7 +159,10 @@ var PostcardListView = Backbone.View.extend({
     render: function(ev) {
         var _this = this;
         _this.model.each(function(postcard) { 
-            _this.$el.append(new PostcardListItemView({model:postcard}).render().el);
+            var item = new PostcardListItemView({model:postcard}).render().$el;
+
+
+            _this.$el.append(item);
         });
 
         return this;
@@ -177,6 +180,22 @@ var PostcardListItemView = Backbone.View.extend({
         var _this = this;
         var html = _this.template({'postcard': _this.model.toJSON()});
         this.$el.html(html);
+
+        // bind the hover
+        this.$el.find('.thumb').hover(function() {
+            var this_thumb = $(this);
+            this_thumb.attr('src', this_thumb.attr('data-gif-src')); 
+        },
+        function() {
+            var this_thumb = $(this);
+            this_thumb.attr('src', this_thumb.attr('data-still-src')); 
+        });
+
+        // fix the date
+        var date_obj = this.$el.find('.date span');
+        datetime = moment(date_obj.html());
+        date_obj.html(datetime.format("ddd, YYYY/M/D, h:mm a"));
+
         return this;
     }
 
@@ -248,8 +267,6 @@ var AppRouter = Backbone.Router.extend({
         
         // put the content back in, ease in with a fade
         $('#content').hide().html(gallery.el).fadeIn();
-
-        enable_postcard_hover();
 
         if ( new_gallery ) {
             $('#-updated.gallery-sort').addClass('active');
@@ -353,24 +370,12 @@ function hide_loading() {
 }
 
 function enable_postcard_hover() {
-    $('#gallery .postcard .thumb').unbind('mouseenter').unbind('mouseleave');
-    $('#gallery .postcard .thumb').hover(function() {
-        var this_thumb = $(this);
-        this_thumb.attr('src', this_thumb.attr('data-gif-src')); 
-    },
-    function() {
-        var this_thumb = $(this);
-        this_thumb.attr('src', this_thumb.attr('data-still-src')); 
-    });
 }
 
 function enable_infinite_scroll() {
     $(window).scroll(function () { 
         if ($(window).scrollTop() >= $(document).height() - $(window).height() - 10) {
-            app.postcardGallery.load_more(function() {
-                //attach hover handler                
-                enable_postcard_hover(); 
-            });
+            app.postcardGallery.load_more();
         }
     });
 }
