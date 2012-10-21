@@ -40,7 +40,7 @@
         <div class="postcard-image">
             <img class="still" src="<%= postcard.resources.cover_photo.url %>">
             <img class="thumb gif" data-still-src="<%= postcard.resources.cover_photo.url %>" data-gif-src="<%= postcard.resources.animated_render.url %>" src="<%= postcard.resources.cover_photo.url %>">
-            <p class="date"><i class="icon-time icon-white"></i> <%= postcard.updated %></p>
+            <p class="date"><i class="icon-time icon-white"></i><span><%= postcard.updated %></span></p>
             <p class="likes"><i class="icon-heart icon-white"></i> <%= postcard.facebook_likes %></p>
         </div>
         <h4 class="title"><%= postcard.title %></h4>

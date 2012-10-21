@@ -160,8 +160,6 @@ var PostcardListView = Backbone.View.extend({
         var _this = this;
         _this.model.each(function(postcard) { 
             var item = new PostcardListItemView({model:postcard}).render().$el;
-
-
             _this.$el.append(item);
         });
 
@@ -210,7 +208,6 @@ var MapView = Backbone.View.extend({
         this.$el.html(html);
         return this;
     }
-
 });
 
 /* APP */
