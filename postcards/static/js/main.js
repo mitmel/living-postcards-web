@@ -3,6 +3,7 @@ var dispatcher = _.clone(Backbone.Events);
 $(function() {
 
 /* MODELS */
+
 var Postcard = Backbone.Model.extend({
     // overridden to have trailing slash
     url: function() {
@@ -53,6 +54,8 @@ var PostcardGallery = Backbone.View.extend({
     pagesize: 12,
 
     pages_left: true,
+
+    scroll_pos: 0,
 
     initialize: function() {
         var _this = this;
@@ -177,17 +180,10 @@ var PostcardListItemView = Backbone.View.extend({
     render: function(ev) {
         var _this = this;
         var html = _this.template({'postcard': _this.model.toJSON()});
-        this.$el.html(html);
+        _this.$el.html(html);
 
         // bind the hover
-        this.$el.find('.thumb').hover(function() {
-            var this_thumb = $(this);
-            this_thumb.attr('src', this_thumb.attr('data-gif-src')); 
-        },
-        function() {
-            var this_thumb = $(this);
-            this_thumb.attr('src', this_thumb.attr('data-still-src')); 
-        });
+        bind_postcard_hover(_this.$el);
 
         // fix the date
         var date_obj = this.$el.find('.date span');
@@ -232,6 +228,9 @@ var AppRouter = Backbone.Router.extend({
         // create and render the template
         html = _.template($('#' + page + '-page-templ').html())();
         $('#content').html(html); 
+
+        // scroll to top
+        $('body, html').animate({ scrollTop: 0 });
     },
 
     about: function() {
@@ -272,6 +271,9 @@ var AppRouter = Backbone.Router.extend({
         // enable infinite scrolling
         enable_infinite_scroll();       
 
+        // bind the hover
+        bind_postcard_hover(gallery.$el);
+
         // Recent activated by default
         // on clicking a gallery sort link
         gallery.$el.find('.gallery-sort').click(function() {
@@ -293,8 +295,15 @@ var AppRouter = Backbone.Router.extend({
             }
         }); 
 
+        $('body, html').animate({ scrollTop: gallery.scroll_pos });
+
         dispatcher.on('closeView', function() {
+            gallery.scroll_pos = $(window).scrollTop();
+
+            // stop the animating gif because the mouse out event won't fire
+            gallery.$el.find('.gif-preview').remove();
             disable_infinite_scroll();
+            dispatcher.off('closeView');
         });
     },
 
@@ -302,12 +311,16 @@ var AppRouter = Backbone.Router.extend({
         dispatcher.trigger('closeView');
 
         var postcard = null;
+
+        // If the postcardCollection exists, just get the postcard from there
         if ( app.postcardCollection ) {
             postcard = app.postcardCollection.get(id);
             app.postcardSingleView = new PostcardSingleView({ model: postcard });
             $('#content').html(app.postcardSingleView.render().el);
             create_facebook_like();
         }
+
+        // Otherwise, have to fetch it
         else {
             postcard = new Postcard({'id': id});
             postcard.fetch({
@@ -319,6 +332,9 @@ var AppRouter = Backbone.Router.extend({
                 }
             });
         }
+
+        // scroll to the last place the gallery was at
+        $(window).scrollTop($('#content').offset().top);
 
         // on view close, cleanup
         dispatcher.on('closeView', function() {
@@ -358,15 +374,25 @@ var app = null;
 
 /* HELPERS */
 
+// bind the hover listener, el is a jquery object
+function bind_postcard_hover(el) {
+    el.find('.postcard-image').hover(
+        function() {
+            var gif_src = $(this).attr('data-gif-src');
+            $(this).prepend('<img class="gif-preview" src=' + gif_src + '></img>');
+        },
+        function() {
+            $(this).find('.gif-preview').remove();
+        }
+    );
+}
+
 function show_loading() {
     app.postcardGallery.$el.append(_.template($('#loader-templ').html()));
 }
 
 function hide_loading() {
     $('#loading').remove();
-}
-
-function enable_postcard_hover() {
 }
 
 function enable_infinite_scroll() {

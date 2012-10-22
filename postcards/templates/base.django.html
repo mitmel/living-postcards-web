@@ -1,14 +1,15 @@
 {% extends "root.django.html" %}
+{% load i18n %}
 
 {% block "body" %}
 <header>
         <div id="silhouette"></div>
-        <a href="#"><h1 class="logo">Living Postcards</h1></a>
+        <a href="#"><h1 class="logo">{% trans "Living Postcards" %}</h1></a>
 	<div id="nav">
 		<ul>
-			<li><a href="#!/gallery/">Gallery</a></li>
-			<li><a href="#!/about/">About</a></li>
-            <li><a href="#!/competition/">The Competition!</a></li>
+            <li><a href="#!/gallery/">{% trans "Gallery" %}</a></li>
+            <li><a href="#!/about/">{% trans "About" %}</a></li>
+            <li><a href="#!/competition/">{% trans "The Competition!" %}</a></li>
 		</ul>		
 	</div>
 </header>
@@ -18,8 +19,9 @@
 </div>
 <footer>
 <div id="footer-links">
-<a href="#">About</a>
-<a href="#">Contact Us</a>
+    <a href="#!/gallery/">{% trans "Gallery" %}</a>
+    <a href="#!/about/">{% trans "About" %}</a>
+    <a href="#!/competition/">{% trans "The Competition!" %}</a>
 </div>
 </footer>
 {% endblock %}

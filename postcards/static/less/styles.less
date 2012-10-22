@@ -132,10 +132,18 @@ header{
         padding:@baseLineHeight;
         margin:@baseLineHeight*4 auto;
         max-width:600px;
+        p,li{
+            line-height:2;
+            font-family: "Helvetica", arial, sans-serif;
+        }
+        li{
+            line-height:1.5;
+            margin-bottom:@baseLineHeight*.5;
+        }
         h1, h2, h3{
             color:@accentRed;
             line-height:1.2;
-            border-bottom:1px solid @accentRed;
+            margin-top:@baseLineHeight*1.5;
         }
         &#home{
             .box-shadow(~"none");
@@ -217,31 +225,29 @@ header{
         }
         .postcard-image{
             position:relative;
-            padding:12px;
-            .thumb{
-                width:100%;
-                .postcard-border(12);
-                
-                //make card thumb expand on hover and active states
-                
-                .transition(~"width .2s ease, top .2s ease, left .2s ease");
-                
-                &.gif{
-                    position:absolute;
-                    top:2%;
-                    left:2%;
-                    width:95%;
-                }
-                &.still{
-                    visibility:none;
-                }
+            //padding:12px;
+            
+            //.postcard-border(12);
+            
+            //make card thumb expand on hover and active states
+            
+            .transition(~"width .2s ease, top .2s ease, left .2s ease");
+            
+            .gif-preview{
+                position:absolute;
+                //top:2%;
+                //left:2%;
+                //width:95%;
+            }
+            .still{
+                visibility:none;
             }
             &:hover, &:active{
                 .thumb{
-                    &.gif{
-                        top:0;
-                        left:0;
-                        width:100%;
+                    &.gif-preview{
+                        //top:0;
+                        //left:0;
+                        //width:100%;
                     }
                     &.still{
                     }
@@ -328,7 +334,7 @@ footer{
                 height:@pcHeight1200;
                 margin-bottom:@gridGutterWidth1200;
                 .postcard-image{
-                    padding:15px;
+                    //padding:15px;
                     .thumb{
                         .postcard-border(12);
                     }
@@ -354,7 +360,7 @@ footer{
                 height:@pcHeight768;
                 margin-bottom:@gridGutterWidth768;
                 .postcard-image{
-                    padding:10px;
+                    //padding:10px;
                     .thumb{
                         .postcard-border(10);
                     }
@@ -382,7 +388,7 @@ footer{
                 height:auto;
                 margin-bottom:@gridGutterWidth;
                 .postcard-image{
-                    padding:15px;
+                    //padding:15px;
                     .thumb{
                         .postcard-border(15);
                     }

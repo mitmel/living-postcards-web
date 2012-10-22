@@ -1,4 +1,5 @@
 {% load flatpages %}
+{% load i18n %}
 
 <script type="text/template" id="about-page-templ">
     <div id="about" class="flatpage">
@@ -21,15 +22,15 @@
 
 <script type="text/template" id="loader-templ">
     <div id="loading">
-        <h3 class="message clearfix"><i class="loader"></i> Loading</h3> 
+        <h3 class="message clearfix"><i class="loader"></i> {% trans "Loading" %}</h3> 
     </div>
 </script>
 
 {# backbone view templates #}
 <script type="text/template" id="postcard-gallery-templ">
     <div id="content-nav" class="btn-group">
-            <button class="btn gallery-sort" id="-updated"> <i class="icon-time"></i> Recent</button>
-            <button class="btn gallery-sort" id="-popularity"> <i class="icon-heart"></i> Popular</button>
+            <button class="btn gallery-sort" id="-updated"> <i class="icon-time"></i> {% trans "Recent" %}</button>
+            <button class="btn gallery-sort" id="-popularity"> <i class="icon-heart"></i> {% trans "Popular"%}</button>
             <!--<button class="btn disabled"> <i class="icon-map-marker"></i> Map Coming soon!</button>-->
     </div>
     <div id="list-container"></div>
@@ -37,9 +38,8 @@
 
 <script type="text/template" id="postcard-list-item-templ">
     <a href="<%= postcard.url %>">
-        <div class="postcard-image">
-            <img class="still" src="<%= postcard.resources.cover_photo.url %>">
-            <img class="thumb gif" data-still-src="<%= postcard.resources.cover_photo.url %>" data-gif-src="<%= postcard.resources.animated_render.url %>" src="<%= postcard.resources.cover_photo.url %>">
+        <div data-gif-src="<%= postcard.resources.animated_render.url %>" class="postcard-image">
+            <img class="still" src="<%= postcard.resources.cover_photo.url %>"></img>
             <p class="date"><i class="icon-time icon-white"></i><span><%= postcard.updated %></span></p>
             <p class="likes"><i class="icon-heart icon-white"></i> <%= postcard.facebook_likes %></p>
         </div>

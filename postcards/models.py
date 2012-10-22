@@ -27,6 +27,7 @@ class Postcard(ModelBase,
 
     class Meta:
         verbose_name = _('postcard')
+        verbose_name_plural = _('postcards')
 
     @models.permalink
     def get_api_uri(self):
@@ -43,7 +44,6 @@ class Postcard(ModelBase,
     content_state = models.PositiveSmallIntegerField(choices=LocastContent.STATE_CHOICES, default=LocastContent.STATE_INCOMPLETE, blank=True)
 
     # popularity
-    # facebook_likes + favorited
     facebook_likes = models.PositiveIntegerField(default=0)
 
     animated_render = models.FileField(
@@ -58,9 +58,9 @@ class Postcard(ModelBase,
 
     frame_delay = models.IntegerField(default=300)
 
-    processed_time = models.DateTimeField('Last time postcard was processed', null=True, blank=True)
+    processed_time = models.DateTimeField(_('Last time postcard was processed'), null=True, blank=True)
 
-    photoset_update_time = models.DateTimeField('Last time a photo was added or removed', null=True, blank=True)
+    photoset_update_time = models.DateTimeField(_('Last time a photo was added or removed'), null=True, blank=True)
 
     @property
     def first_photo_model(self):
@@ -253,6 +253,7 @@ class Photo(PostcardContent,
 
     class Meta:
         verbose_name = _('photo')
+        verbose_name_plural = _('photo')
 
     @models.permalink
     def get_api_uri(self):
@@ -267,6 +268,7 @@ class Photo(PostcardContent,
 
     def pre_save(self):
         postcard = self.postcard
+
         if not self.id and self.file:
             # New file
             postcard.photoset_update_time = timezone.now()
@@ -276,6 +278,7 @@ class Photo(PostcardContent,
             if (self.file and not p.file) or (p.file and not self.file):
                 # New file
                 postcard.photoset_update_time = timezone.now()
+
         elif not postcard.photoset_update_time:
             postcard.photoset_update_time = timezone.now()
 
