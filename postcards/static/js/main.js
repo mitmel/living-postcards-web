@@ -186,9 +186,9 @@ var PostcardListItemView = Backbone.View.extend({
         bind_postcard_hover(_this.$el);
 
         // fix the date
-        var date_obj = this.$el.find('.date span');
-        datetime = moment(date_obj.html());
-        date_obj.html(datetime.format("ddd, YYYY/M/D, h:mm a"));
+        //var date_obj = this.$el.find('.date span');
+        //datetime = moment(date_obj.html());
+        //date_obj.html(datetime.format("ddd, YYYY/M/D, h:mm a"));
 
         return this;
     }

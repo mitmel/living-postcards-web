@@ -69,7 +69,7 @@ header{
 	background-color:white;
 	background-image:url('../img/silhouetteBackground.jpg');
 	background-repeat:repeat-x;
-        .box-shadow(inset 0px 0px 12px @grayDark);
+        .box-shadow(0px 0px 12px @grayDark);
         .logo{
             .hide-text;
             width:400px;
@@ -125,13 +125,38 @@ header{
     .box-shadow(@shadow-rule);
 }
 
+.card-shadow(@spread:8){
+    .box-shadow(~"0 0 @{spread}px 0 @{gray}");
+}
+
 #content{ 
     .flatpage{
-        .postcard-border(10);
+        .card-shadow;
         background-color:#fff;
         padding:@baseLineHeight;
-        margin:@baseLineHeight*4 auto;
+        margin:@baseLineHeight*3 auto;
         max-width:600px;
+        .photo-credit{
+            color:@white;
+            position:relative;
+            margin:0;
+            height:0;
+            top:-@baseLineHeight*1.25;
+            right:10px;
+            font-weight:300;
+            font-size:.8em;
+            text-align:right;
+            font-style:italic;
+        }
+        .logo{
+            margin-right:@baseLineHeight*2;
+            &.avea{
+                width:300px;
+            }
+            &.mel{
+                width:100px;
+            }
+        }
         p,li{
             line-height:2;
             font-family: "Helvetica", arial, sans-serif;
@@ -158,14 +183,14 @@ header{
     #loading{
         margin:@baseLineHeight*4 auto;
         background-color:#fff;
-        .postcard-border(10);
-        padding:0 @baseLineHeight*.15;
+        .card-shadow;
+        padding:2px 8px;
         color:@gray;
         width:150px;
         .loader{
             position:relative;
             top:5px;
-            left:5px;
+            left:7px;
             float:left;
             margin-right:@baseLineHeight;
             display:block;
@@ -222,50 +247,58 @@ header{
         min-height:800px;
         .postcard{
             height:@pcHeight;
+            
+            .details{
+                padding:0 3%;
+                .author{
+                    margin-bottom:0;
+                }
+            }
         }
         .postcard-image{
             position:relative;
-            //padding:12px;
-            
-            //.postcard-border(12);
+            background-color:white;
+            .card-shadow;
             
             //make card thumb expand on hover and active states
             
-            .transition(~"width .2s ease, top .2s ease, left .2s ease");
+            //.transition(~"width .2s ease, top .2s ease, left .2s ease");
             
+            .still, .gif-preview{
+                padding:3%;
+                width:94%;
+            }           
+ 
             .gif-preview{
                 position:absolute;
-                //top:2%;
-                //left:2%;
-                //width:95%;
             }
             .still{
                 visibility:none;
             }
             &:hover, &:active{
-                .thumb{
-                    &.gif-preview{
-                        //top:0;
-                        //left:0;
-                        //width:100%;
-                    }
-                    &.still{
-                    }
+                .gif-preview{
+                }
+                .still{
                 }
                 .date, .likes{
-                    opacity:0;
+                    opacity:1;
                 }
             }
             .date, .likes{
-                position:absolute;
-                bottom:12px;
+                position:absolute; 
                 color:@white;
+                background-color:rgba(10,10,10,.3);
+                padding:3px 5px;
+                opacity:0;
+                .transition(opacity 0.1s ease);
             }
             .date{
-                left:18px;
+                left:8%;
+                bottom:5%;
             }
             .likes{
-                right:24px;
+                top:9%;
+                left:8%;
             }
         }
     }
@@ -274,22 +307,30 @@ header{
 
     #postcard-view{
          padding:@gridGutterWidth1200*2 0 @gridGutterWidth1200 0;
-        .postcard-image{ 
-            .transition(width 0.2s ease);
-            padding:15px;
-            margin-bottom:@baseLineHeight;
+        
+        .postcard-image, .map{
+            background-color:white;
+            .card-shadow;
             img{
-                width:100%;
-                .postcard-border(15);               
+                padding:2%;
+                width:96%;
+            }
+        } 
+
+        .details{
+            margin-bottom:@baseLineHeight;
+            
+            .time-range{
+                display:block;
+                color:@accentRed;
             }
         }
+
+        .postcard-image{ 
+            .transition(width 0.2s ease);
+            margin-bottom:@baseLineHeight;
+        }
         .map{
-            border-box:content;
-            margin-top:@baseLineHeight*2;
-            img{
-                width:100%; 
-                .postcard-border(15); 
-            }
         }
         
     } 
