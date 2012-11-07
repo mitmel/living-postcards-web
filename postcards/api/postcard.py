@@ -85,7 +85,7 @@ class PostcardAPI(rest.ResourceView):
 
         postcard = get_object(models.Postcard, postcard_id)
 
-        if not postcard.allowed_edit(request.user):
+        if not postcard.is_author(request.user):
             raise exceptions.APIForbidden
 
         postcard = postcard_from_post(request, postcard)
@@ -98,7 +98,7 @@ class PostcardAPI(rest.ResourceView):
 
         postcard = get_object(models.Postcard, postcard_id)
 
-        if not postcard.allowed_edit(request.user):
+        if not postcard.is_author(request.user):
             raise exceptions.APIForbidden
 
         postcard.delete()
@@ -141,13 +141,19 @@ class PostcardAPI(rest.ResourceView):
 
         return APIResponseOK(content=api_serialize(photo, request))
 
-
     @require_http_auth
     def post_photo(request, postcard_id, photo_id = None):
+
+        postcard = get_object(models.Postcard, id = postcard_id)
+        if not postcard.allowed_edit(request.user):
+            raise exceptions.APIForbidden
 
         # If there is a photo_id, posting raw photo data to a photo
         if photo_id:
             photo = get_object(models.Photo, id = photo_id)
+            if not photo.is_author(request.author):
+                raise exceptions.APIForbidden
+
             check_postcard_photo(postcard_id, photo_id)
 
             content_type = get_param(request.META, 'CONTENT_TYPE')
@@ -177,19 +183,14 @@ class PostcardAPI(rest.ResourceView):
             return HttpResponseNotAllowed(['GET', 'POST', 'HEAD'])
 
         photo = get_object(models.Photo, id = photo_id)
-        check_postcard_photo(postcard_id, photo_id)
+        postcard = check_postcard_photo(postcard_id, photo_id)
 
-        if not photo.allowed_edit(request.user):
+        if (not photo.is_author(request.user)) and (not postcard.is_author(request.user)):
             raise exceptions.APIForbidden
 
         photo.delete()
 
         return APIResponseOK(content='success')
-
-
-    @optional_http_auth
-    def get_authors(request, postcard_id):
-        pass
 
 
 def check_postcard_photo(postcard_id, photo_id):
