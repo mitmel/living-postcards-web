@@ -13,6 +13,7 @@ output=${2}
 output_framerate=40 # this needs to be faster than 25fps for crazyquick animations
 output_codec="h263" # all Android devices support h263
 output_size="352x288" # 3gp only supports a few weird sizes. This is one of them.
+output_quality="512k" # this has been tuned by hand. in units b/s
 
 # i counts through arguments, j increments file names
 i=0
@@ -30,6 +31,6 @@ done
 
 # with ffmpeg, the output framerate is fixed but the input framerate controls
 # how quickly the frames are animated.
-ffmpeg -y -r ${fps} -i ${dir}/"image_%03d".jpg -s ${output_size} -r ${output_framerate} -vcodec ${output_codec} ${output}
+ffmpeg -y -r ${fps} -i ${dir}/"image_%03d".jpg -s ${output_size} -r ${output_framerate} -vcodec ${output_codec} -b ${output_quality} ${output}
 
 rm -rf ${dir}

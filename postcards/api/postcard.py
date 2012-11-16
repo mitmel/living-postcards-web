@@ -151,10 +151,10 @@ class PostcardAPI(rest.ResourceView):
         # If there is a photo_id, posting raw photo data to a photo
         if photo_id:
             photo = get_object(models.Photo, id = photo_id)
-            if not photo.is_author(request.author):
-                raise exceptions.APIForbidden
-
             check_postcard_photo(postcard_id, photo_id)
+
+            if not photo.is_author(request.user):
+                raise exceptions.APIForbidden
 
             content_type = get_param(request.META, 'CONTENT_TYPE')
             mime_type = content_type.split(';')[0]
