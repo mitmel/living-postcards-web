@@ -1,4 +1,4 @@
 South>=0.7.5
-locast-core==1.0
+locast-core==1.0.1
 sorl-thumbnail==11.12
 pytz==2012f
