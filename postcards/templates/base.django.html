@@ -7,21 +7,21 @@
         <a href="#"><h1 class="logo">{% trans "Living Postcards" %}</h1></a>
 	<div id="nav">
 		<ul>
-            <li><a href="#!/gallery/">{% trans "Gallery" %}</a></li>
-            <li><a href="#!/about/">{% trans "About" %}</a></li>
-            <li><a href="#!/competition/">{% trans "The Competition!" %}</a></li>
+            <li><a href="{% url home %}#!/gallery/">{% trans "Gallery" %}</a></li>
+            <li><a href="{% url home %}#!/about/">{% trans "About" %}</a></li>
+            <li><a href="{% url home %}#!/competition/">{% trans "The Competition!" %}</a></li>
 		</ul>		
 	</div>
 </header>
 <div role="main">
 <!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
-    <div id="content" class="container" ></div>
+<div id="content" class="container" >{% block content %}{% endblock %}</div>
 </div>
 <footer>
 <div id="footer-links">
-    <a href="#!/gallery/">{% trans "Gallery" %}</a>
-    <a href="#!/about/">{% trans "About" %}</a>
-    <a href="#!/competition/">{% trans "The Competition!" %}</a>
+    <a href="{% url home %}#!/gallery/">{% trans "Gallery" %}</a>
+    <a href="{% url home %}#!/about/">{% trans "About" %}</a>
+    <a href="{% url home %}#!/competition/">{% trans "The Competition!" %}</a>
 </div>
 </footer>
 {% endblock %}

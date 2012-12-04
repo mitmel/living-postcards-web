@@ -1,3 +1,9 @@
 {% extends "base.django.html" %}
-{% block "content" %}
+
+{% block head %}
+    <script src="{{STATIC_URL}}js/home.js"></script>
+{% endblock %}
+
+{% block content %}
+    {% comment %}Nothing to put here...{% endcomment %}
 {% endblock %}

@@ -215,14 +215,14 @@ var AppRouter = Backbone.Router.extend({
         '!/map/':'map',
         '!/gallery/':'gallery',
         '!/postcard/:id/':'postcard',
-        '!/:page/':'static_page',
+        '!/:page/':'flat_page',
     },
 
     home: function () {
-        this.static_page('home');
+        this.flat_page('home');
     },
 
-    static_page: function(page) {
+    flat_page: function(page) {
         dispatcher.trigger('closeView');
 
         // create and render the template
