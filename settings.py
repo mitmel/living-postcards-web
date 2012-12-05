@@ -167,6 +167,7 @@ CONTEXT_VARIABLES = (
     'BASE_URL',
     'FULL_BASE_URL',
     'FACEBOOK_APP_ID',
+    'GOOGLE_ANALYTICS_ID',
 )
 
 # A sample logging configuration. The only tangible logging
