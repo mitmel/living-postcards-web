@@ -20,7 +20,6 @@ from locast.models.modelbases import LocastContent
 from sorl.thumbnail import get_thumbnail
 
 class Postcard(ModelBase,
-    interfaces.UUID,
     interfaces.PrivatelyAuthorable,
     interfaces.Titled,
     interfaces.Locatable):
@@ -239,7 +238,6 @@ class Postcard(ModelBase,
 
 # Generic holder for media content.
 class PostcardContent(modelbases.LocastContent,
-        interfaces.UUID,
         interfaces.Authorable,
         interfaces.Locatable):
 

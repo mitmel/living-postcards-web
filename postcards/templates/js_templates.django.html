@@ -27,11 +27,36 @@
 
 {# backbone view templates #}
 <script type="text/template" id="postcard-gallery-templ">
-    <div id="content-nav" class="btn-group">
-            <button class="btn gallery-sort" id="-updated"> <i class="icon-time"></i> {% trans "Recent" %}</button>
-            <button class="btn gallery-sort" id="-popularity"> <i class="icon-heart"></i> {% trans "Popular"%}</button>
-            <!--<button class="btn disabled"> <i class="icon-map-marker"></i> Map Coming soon!</button>-->
+    <div class="row" id="content-nav">
+
+        <div class="span2">
+           <div id="orderby-select" class="btn-group">
+                <button class="btn gallery-sort" id="-updated"> <i class="icon-time"></i> {% trans "Recent" %}</button>
+                <button class="btn gallery-sort" id="-popularity"> <i class="icon-heart"></i> {% trans "Popular"%}</button>
+            </div>
+        </div>
+
+        <div class="span10" id="dist-filter">
+            <div class="btn-group">
+                <a class="btn" id="dist-filter-button" href="#">Search Nearby</a>
+                <!--
+                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-chevron-down"></i></a>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
+                    <li class="list-header">Set radius</li>
+                    <li><a id="1mi" tabindex="-1" href="#">1 mile </a></li>
+                    <li><a id="10mi"tabindex="-1" href="#">10 miles <i class="icon-ok"></i></a></li>
+                    <li><a id="100mi"tabindex="-1" href="#">100 miles </a></li>
+                </ul>
+                -->
+            </div>
+
+            <div class="input-append">
+                <input class="input-medium" id="user-address" type="text" placeholder="Enter an address or a city"></input>
+                <a id="geolocate-me" href="#"><span class="add-on"><i class="icon-map-marker"></i></span></a>
+            </div>
+        </div>
     </div>
+
     <div id="list-container"></div>
 </script>
 
@@ -101,7 +126,6 @@
             <p> <span class="time-range">{% trans "duration" %}</span> <%= time_period %> <span class="time-range">{% trans "started" %}</span> <%= created.calendar() %> <br/> <span class="time-range">{% trans "most recent photo" %}</span> <%= updated.calendar() %> </p>
             <div id="facebook-like"></div>
         </div> 
-
 
         <% if (postcard.location != undefined ) { %>
         <div class="map offset1 span8">

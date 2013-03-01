@@ -162,12 +162,15 @@ DEFAULT_PRIVACY = 2
 
 FACEBOOK_APP_ID = ''
 
+GOOGLE_API_KEY = ''
+
 CONTEXT_VARIABLES = (
     'HOST',
     'BASE_URL',
     'FULL_BASE_URL',
     'FACEBOOK_APP_ID',
     'GOOGLE_ANALYTICS_ID',
+    'GOOGLE_API_KEY',
 )
 
 # A sample logging configuration. The only tangible logging

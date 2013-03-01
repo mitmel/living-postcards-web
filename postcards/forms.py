@@ -32,4 +32,3 @@ class RegisterForm(UserCreationForm):
             raise forms.ValidationError(_('This Email has already been registered.'))
 
         return email
-

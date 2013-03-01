@@ -167,6 +167,13 @@ class PostcardAPI(rest.ResourceView):
             except LocastContent.InvalidMimeType:
                 raise exceptions.APIBadRequest('Invalid file type!')
 
+            try:
+                import Image
+                i = Image.open(photo.file.path)
+                i.load()
+            except IOError:
+                raise exceptions.APIBadRequest('Corrupted image!')
+
             return APIResponseOK(content=api_serialize(photo.contentmodel))
 
         # If there is not, posting a new photo object

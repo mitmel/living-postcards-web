@@ -1,6 +1,12 @@
 var dispatcher = _.clone(Backbone.Events);
 
+var geocoder = null;
+
 $(function() {
+
+/* INITIALIZE */
+
+var geocoder = new google.maps.Geocoder();
 
 /* MODELS */
 
@@ -49,6 +55,8 @@ var PostcardGallery = Backbone.View.extend({
 
     orderby: '-updated',
 
+    distance_filter: null,
+
     page: 1,
 
     pagesize: 12,
@@ -59,7 +67,7 @@ var PostcardGallery = Backbone.View.extend({
 
     initialize: function() {
         var _this = this;
-        _this.postcardListView ;
+        _this.postcardListView;
 
         // On a reload of the collection, rerender the list
         _this.model.on('reset', function() {
@@ -85,17 +93,34 @@ var PostcardGallery = Backbone.View.extend({
         }
     },
 
+    set_distance_filter: function(lon, lat) {
+        var _this = this;
+        if ( lon ) {
+            var filter = lon.toString() + ',' + lat.toString() + ',' + '16000';
+            _this.distance_filter = filter;
+        }
+        else {
+            _this.distance_filter = '';
+        }
+    },
+
     // this will fire the 'reset' handler of the collection
     reload: function(callback) {
         var _this = this;
         _this.page = 1;
         show_loading();
+
+        data = {
+            orderby: _this.orderby,
+            page: _this.page,
+            pagesize: _this.pagesize,
+        }
+        if ( _this.distance_filter ) {
+            data['dist'] = _this.distance_filter;
+        }
+
         _xhr = _this.model.fetch({
-            data: { 
-                orderby: _this.orderby,
-                page: _this.page,
-                pagesize: _this.pagesize,
-            },
+            data: data,
             success: function() {
                 _this._check_if_pages_left(_xhr);
                 hide_loading();
@@ -115,23 +140,31 @@ var PostcardGallery = Backbone.View.extend({
         // is loading
         disable_infinite_scroll();
 
+        data = {
+            orderby: _this.orderby,
+            page: _this.page,
+            pagesize: _this.pagesize,
+        }
+        if ( _this.distance_filter ) {
+            data['dist'] = _this.distance_filter;
+        }
+
         show_loading();
         _xhr = _this.model.fetch({
-            data: { 
-                orderby: _this.orderby,
-                page: _this.page,
-                pagesize: _this.pagesize,
-            },
+            data: data,
+
             complete: function() {
                 //re-enable infinite scroll
                 enable_infinite_scroll();
             },
+
             success: function() {
                 _this._check_if_pages_left(_xhr);
                 hide_loading();
                 if ( callback ) { callback(); }
             },
-            add: true,
+
+            update: true,
         });
     },
 
@@ -276,24 +309,78 @@ var AppRouter = Backbone.Router.extend({
 
         // Recent activated by default
         // on clicking a gallery sort link
-        gallery.$el.find('.gallery-sort').click(function() {
+        gallery.$el.find('#orderby-select .gallery-sort').click(function() {
 
             // only reload if its not already active
             if (!$(this).hasClass('active')) {
                 var orderby = $(this).attr('id');
-                $('.gallery-sort').removeClass('active');
+                $('#orderby-select .gallery-sort').removeClass('active');
                 $(this).addClass('active');
                 gallery.orderby = orderby;
 
                 // reload the gallery after setting the new orderby
-                var list_div = gallery.$el.find('#list-container');
-                list_div.fadeOut(function() {
-                    gallery.reload();
-                });
-
-                return false;
+                gallery_fade_reload();
             }
+            return false;
         }); 
+
+        gallery.$el.find('#geolocate-me').click(function() {
+
+            // Get the users coordinates
+            navigator.geolocation.getCurrentPosition(function(pos) {
+
+                // Set the distance filter
+                gallery.set_distance_filter(pos.coords.longitude, pos.coords.latitude);
+                gallery_fade_reload();
+
+                // Get the street address to display in the address box
+                var latlng = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+                geocoder.geocode({'latLng': latlng}, function(results, status) {
+                    if (status == google.maps.GeocoderStatus.OK) {
+                        $('#user-address').val(results[0].formatted_address).addClass('geolocated');
+                    }
+                    else {
+                        alert("Geocoder failed due to: " + status);
+                    }
+                });
+            });
+
+            return false;
+        });
+
+        gallery.$el.find('#user-address').change(function() {
+            $(this).removeClass('geolocated');
+            if ( $(this).val() == '' ) {
+                gallery.set_distance_filter(null);
+                gallery_fade_reload();
+            }
+        });
+
+        gallery.$el.find('#dist-filter-button').click(function() {
+            // If the address wasn't auto determined, check the address and get the coords
+            if ( ! $('#user-address').hasClass('geolocated') ) {
+
+                // Reverse geocode the address to get coordinates
+                var address = $('#user-address').val(); 
+                geocoder.geocode( { 'address': address }, function(results, status) {
+                    if (status == google.maps.GeocoderStatus.OK) {
+                        $('#user-address').val(results[0].formatted_address);
+                        console.log(results[0].geometry.location);
+                        var lat = results[0].geometry.location.lat();
+                        var lon = results[0].geometry.location.lng();
+
+                        // Set the distance filter
+                        gallery.set_distance_filter(lon, lat);
+                        gallery_fade_reload();
+                    } 
+                    else {
+                        alert("Geocode was not successful for the following reason: " + status);
+                    }
+                });
+            }
+
+            return false;
+        });
 
         $('body, html').animate({ scrollTop: gallery.scroll_pos });
 
@@ -397,9 +484,16 @@ function hide_loading() {
 
 function enable_infinite_scroll() {
     $(window).scroll(function () { 
-        if ($(window).scrollTop() >= $(document).height() - $(window).height() - 10) {
+        if ($(window).scrollTop() >= $(document).height() - $(window).height() - 5) {
             app.postcardGallery.load_more();
         }
+    });
+}
+
+function gallery_fade_reload() {
+    var list_div = app.postcardGallery.$el.find('#list-container');
+    list_div.fadeOut(function() {
+        app.postcardGallery.reload();
     });
 }
 
