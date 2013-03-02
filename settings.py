@@ -92,7 +92,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'fp7yg-tl=aevtoa7-x90(k@tajdu6u9hz)=eftdw8lyc_@9)0p'
+SECRET_KEY = ''
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
@@ -162,7 +162,7 @@ DEFAULT_PRIVACY = 2
 
 FACEBOOK_APP_ID = ''
 
-GOOGLE_API_KEY = ''
+GOOGLE_ANALYTICS_ID = ''
 
 CONTEXT_VARIABLES = (
     'HOST',
@@ -170,7 +170,6 @@ CONTEXT_VARIABLES = (
     'FULL_BASE_URL',
     'FACEBOOK_APP_ID',
     'GOOGLE_ANALYTICS_ID',
-    'GOOGLE_API_KEY',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -206,4 +205,3 @@ CONTEXT_VARIABLES = (
 # import settings_local
 try: from settings_local import *
 except ImportError: raise 'Cannot find settings_local.py!'
-
