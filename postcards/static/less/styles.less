@@ -54,35 +54,37 @@
 
 
 html {
-        background-color:@paleBlue;
+        background-image:url('../img/bedge_grunge.png');
 }
 
 body{
-	background-image:url('../img/textured_arches.png');
-	font-family:@sansFontFamily;
+	background-image:url('../img/bedge_grunge_light.png');
+    font-family:@sansFontFamily;
+    
 }
 
 header{
-	height:160px;
+	height:200px;
         position:relative;
         overflow:hidden;
 	background-color:white;
-	background-image:url('../img/silhouetteBackground.jpg');
-	background-repeat:repeat-x;
+    background-image:url('../img/bedge_grunge.png');
+    background-repeat: repeat-x;
         .box-shadow(0px 0px 12px @grayDark);
         .logo{
             .hide-text;
+            opacity:0.9;
             width:480px;
-            height:71px;
-            background-image:url('../img/logo_red_beta.png');
+            height:80px;
+            background-image:url('../img/FLIPR_logo.png');
             position:relative;
-            top:@baseLineHeight;
+            top:@baseLineHeight+20;
             margin:0 auto; 
         }
         a:hover{
             text-decoration:none;
         }
-        #silhouette{
+      /*  #silhouette{
             background-image:url('../img/city_trans.png');
             background-position:center;
             background-repeat: no-repeat;
@@ -91,25 +93,31 @@ header{
             height:283px;
             max-width:none;
             bottom:0;
-        } 
+        } */
         #nav {
 	    position:absolute;
-            margin-top:12px;
+            margin-top:80px;
             width:100%;	
+            /*background: rgba(0, 0, 0, .1);*/
             ul{
                 text-align:center;
-                margin-top:16px;
+                margin-top:0px;
                 li{
                     display:inline-block;
+                    padding:12px;
+                    width:200px;
+                    background: rgba(0, 0, 0, .1);
                     font-size:@baseFontSize*1.3;
-                    margin:0 @baseFontSize*.25;
+                    margin:-2px;
+                    /*margin:0 @baseFontSize*4;*/
                     a{
                         .transition(color 0.5s ease);
-                        text-shadow: 0px 2px 3px @white;
+                        /* text-shadow: 0px 2px 3px @gray;*/
                         text-decoration:none;
-	                color: @accentRed;
+	                color: @grayDark;
+                    opacity:0.9;
                         &:hover{
-                             color:darken(@accentRed, 30%);
+                             color:darken(@darkorange, 0%);
                         }
                     }
                 }
@@ -241,7 +249,7 @@ header{
         margin-bottom:@gridGutterWidth1200;
         position:relative; 
         .title{
-            color:@accentRed;
+            color:@darkorange;
             font-weight:400;
             margin-bottom:0;
             line-height:1;
@@ -250,15 +258,15 @@ header{
         .author{
             margin-top:0;
             font-weight:400;
-            color:@paleBlue;
+            color:@grayDark;
             text-transform:Capitalize;
-            color:darken(@paleBlue, 20%);
+            color:darken(@grayDark, 20%);
             .seperator{
                 text-transform:lowercase;
             }
         }
         .description{
-            color:darker(@paleBlue, 10%);
+            color:darker(@grayDark, 10%);
             line-height:1.2; 
         }
         a:hover{
@@ -364,15 +372,17 @@ header{
 
 footer{
     width:100%;
-    background-color:@paleBlue;
+    background-image:url('../img/bedge_grunge.png');
+    
+    .box-shadow(1px -2px 6px -1px @grayDark);
     #footer-links{
         text-align:center;
         padding:@gridGutterWidth1200;
         a{
-            color:lighten(@paleBlue, 60%);
+            color:@gray;
             display:inline-block;
             margin-right:@baseFontSize;
-            text-shadow: 0px 1px 2px darken(@paleBlue, 20%);
+            /*text-shadow: 0px 1px 2px darken(@paleBlue, 20%);*/
             &:hover{
                 text-decoration:none;
             }
