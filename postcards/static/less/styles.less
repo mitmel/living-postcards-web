@@ -60,6 +60,7 @@ html {
 body{
 	background-image:url('../img/bedge_grunge_light.png');
     font-family:@sansFontFamily;
+
     
 }
 
@@ -139,8 +140,12 @@ header{
 
 #content{ 
     .flatpage{
-        .card-shadow;
-        background-color:#fff;
+        /* .card-shadow;
+        background-color:#fff; */
+        font-family:@flatFontFamily;
+        font-size: @flatFontSize;
+        line-height: @flatLineHeight;
+        text-align:left;
         padding:@baseLineHeight;
         margin:@baseLineHeight*3 auto;
         max-width:600px;
@@ -156,7 +161,7 @@ header{
             text-align:right;
             font-style:italic;
         }
-        &#home {
+#home {
             h2 {
                 font-family: "Parisienne";
                 color: @grayDark;
