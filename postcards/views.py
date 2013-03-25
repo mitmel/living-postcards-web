@@ -22,6 +22,7 @@ def home(request):
 
     home_page = _get_js_flatpage('home', locale)
     about_page = _get_js_flatpage('about', locale)
+    sponsors_page = _get_js_flatpage('sponsors', locale)
     competition_page = _get_js_flatpage('competition', locale)
 
     if fragment:

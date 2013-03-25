@@ -244,9 +244,8 @@ var MapView = Backbone.View.extend({
 var AppRouter = Backbone.Router.extend({
 
     routes: {
-        '':'home',
+        '':'gallery',
         '!/map/':'map',
-        '!/gallery/':'gallery',
         '!/postcard/:id/':'postcard',
         '!/:page/':'flat_page',
     },
@@ -270,6 +269,13 @@ var AppRouter = Backbone.Router.extend({
         dispatcher.trigger('closeView');
         // create and render the template
         html = _.template($('#about-page-templ').html())();
+        $('#content').html(html); 
+    },
+
+    sponsors: function() {
+        dispatcher.trigger('closeView');
+        // create and render the template
+        html = _.template($('#sponsors-page-templ').html())();
         $('#content').html(html); 
     },
 

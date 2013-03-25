@@ -7,9 +7,10 @@
         <a href="#"><h1 class="logo">{% trans "Living Postcards" %}</h1></a>
 	<div id="nav">
 		<ul>
-            <li><a href="{% url home %}#!/gallery/">{% trans "Gallery" %}</a></li>
+            <li><a href="{% url home %}#">{% trans "Gallery" %}</a></li>
             <li><a href="{% url home %}#!/about/">{% trans "About" %}</a></li>
-            <li><a href="{% url home %}#!/competition/">{% trans "The Competition!" %}</a></li>
+            <li><a href="{% url home %}#!/competition/">{% trans "The Competition" %}</a></li>
+            <li><a href="{% url home %}#!/sponsors/">{% trans "Sponsors" %}</a></li>
 		</ul>		
 	</div>
 </header>
@@ -19,9 +20,10 @@
 </div>
 <footer>
 <div id="footer-links">
-    <a href="{% url home %}#!/gallery/">{% trans "Gallery" %}</a>
+    <a href="{% url home %}#">{% trans "Gallery" %}</a>
     <a href="{% url home %}#!/about/">{% trans "About" %}</a>
-    <a href="{% url home %}#!/competition/">{% trans "The Competition!" %}</a>
+    <a href="{% url home %}#!/competition/">{% trans "The Competition" %}</a>
+    <a href="{% url home %}#!/sponsors/">{% trans "Sponsors" %}</a>
 </div>
 </footer>
 {% endblock %}
