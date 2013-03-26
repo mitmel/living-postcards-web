@@ -183,6 +183,7 @@ class PostcardAPI(rest.ResourceView):
 
             return APIResponseCreated(content=api_serialize(photo.contentmodel, request), location=photo.get_api_uri())
 
+
     @require_http_auth
     def delete_photo(request, postcard_id, photo_id = None):
         # currently can't delete all photos at once
@@ -198,6 +199,25 @@ class PostcardAPI(rest.ResourceView):
         photo.delete()
 
         return APIResponseOK(content='success')
+
+
+    # TODO: if we ever update to the newest locast core, this method is in there.
+    @require_http_auth
+    def post_favorite(request, postcard_id):
+        postcard = get_object(models.Postcard, id=postcard_id)
+        favorite = get_param(request.POST, 'favorite')
+
+        if not favorite:
+            raise exceptions.APIBadRequest('Incorrect data posted. Should be favorite=true or favorite=false.')
+
+        favorite = (favorite in ['true','True'])
+
+        if favorite:
+            postcard.favorite(request.user)
+        else:
+            postcard.unfavorite(request.user)
+
+        return APIResponseOK(content={'is_favorite':postcard.is_favorited_by(request.user)})
 
 
 def check_postcard_photo(postcard_id, photo_id):

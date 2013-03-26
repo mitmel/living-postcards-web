@@ -25,8 +25,7 @@ var PostcardCollection = Backbone.Collection.extend({
     parse: function(response) {
         // remove items without an animated_render
         //
-        // NOTE: they currently don't get sent from the API
-        // maybe they should have a place holder?
+        // NOTE: they currently don't get sent from the API. Just incase...
         return _.reject(response, function(postcard) {
             return !(_.has(postcard.resources, 'animated_render'));
         });
@@ -41,10 +40,12 @@ var PostcardSingleView = Backbone.View.extend({
     id: 'postcard-view',
 
     render: function(ev) {
-        var html = this.template({'postcard': this.model.toJSON()});
+        _this = this;
+
+        var html = _this.template({'postcard': _this.model.toJSON()});
         this.$el.html(html);
 
-        return this;
+        return _this;
     }
 });
 
@@ -165,6 +166,8 @@ var PostcardGallery = Backbone.View.extend({
             },
 
             update: true,
+
+            remove: false,
         });
     },
 
@@ -371,7 +374,6 @@ var AppRouter = Backbone.Router.extend({
                 geocoder.geocode( { 'address': address }, function(results, status) {
                     if (status == google.maps.GeocoderStatus.OK) {
                         $('#user-address').val(results[0].formatted_address);
-                        console.log(results[0].geometry.location);
                         var lat = results[0].geometry.location.lat();
                         var lon = results[0].geometry.location.lng();
 
@@ -436,6 +438,7 @@ var AppRouter = Backbone.Router.extend({
         });
     },
 
+    /* MAJOR TODO: Slippy map */
     map: function() {
         dispatcher.trigger('closeView');
 

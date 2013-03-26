@@ -22,7 +22,8 @@ from sorl.thumbnail import get_thumbnail
 class Postcard(ModelBase,
     interfaces.PrivatelyAuthorable,
     interfaces.Titled,
-    interfaces.Locatable):
+    interfaces.Locatable,
+    interfaces.Favoritable):
 
     class Meta:
         verbose_name = _('postcard')

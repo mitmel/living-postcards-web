@@ -7,6 +7,8 @@ urlpatterns = patterns('postcards.api',
     url(r'^postcard/(?P<postcard_id>\d+)/photo/(?P<photo_id>\d+)/$', 'postcard.PostcardAPI', name='postcard_photo_single_api', kwargs={'method':'photo'}),
     url(r'^postcard/(?P<postcard_id>\d+)/photo/$', 'postcard.PostcardAPI', name='postcard_photo_api', kwargs={'method':'photo'}),
 
+    url(r'^postcard/(?P<postcard_id>\d+)/favorite/$', 'postcard.PostcardAPI', name='postcard_favorite_api', kwargs={'method':'favorite'}),
+
     url(r'^user/(?P<user_id>\d+)/$', 'user.UserAPI', name='user_api_single'),
     url(r'^user/me$', 'user.UserAPI', kwargs={'method':'me'}),
     url(r'^user/$', 'user.UserAPI', name='user_api'),
